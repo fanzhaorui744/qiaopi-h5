@@ -320,6 +320,7 @@
   .decor-item {
     cursor:pointer; padding:8px; border:1px dashed transparent;
     border-radius:4px; transition: all .15s;
+    touch-action:none;
   }
   .decor-item:hover, .decor-item.selected {
     border-color:#a8322d; background: rgba(168,50,45,0.06);
@@ -577,39 +578,39 @@
 
   // ============ 装饰：印章 & 贴纸 ============
   const SEALS = [
-    { type:'square', text:'平安',   cls:'seal-square' },
-    { type:'square', text:'家书',   cls:'seal-square' },
-    { type:'round',  text:'思故里', cls:'seal-round' },
-    { type:'rect',   text:'家书抵万金', cls:'seal-rect' },
-    { type:'vertical', text:'珍重', cls:'seal-vertical' },
-    { type:'round',  text:'雁足传书', cls:'seal-round' },
+    { type:'seal', text:'平安',   cls:'seal-square', label:'平安' },
+    { type:'seal', text:'家书',   cls:'seal-square', label:'家书' },
+    { type:'seal', text:'思故里', cls:'seal-round',  label:'思故里' },
+    { type:'seal', text:'家书抵万金', cls:'seal-rect', label:'家书抵万金' },
+    { type:'seal', text:'珍重', cls:'seal-vertical', label:'珍重' },
+    { type:'seal', text:'雁足传书', cls:'seal-round', label:'雁足传书' },
   ];
   const STICKERS = [
-    { cls:'sticker sticker-tag',   text:'母亲大人膝下' },
-    { cls:'sticker sticker-tag',   text:'一切安好' },
-    { cls:'sticker sticker-money', text:'银洋伍元' },
-    { cls:'sticker sticker-tag',   text:'望珍重' },
-    { cls:'sticker sticker-small', text:'父安' },
-    { cls:'sticker sticker-small', text:'母安' },
+    { type:'sticker', cls:'sticker sticker-tag',   text:'母亲大人膝下', label:'母亲大人膝下' },
+    { type:'sticker', cls:'sticker sticker-tag',   text:'一切安好', label:'一切安好' },
+    { type:'sticker', cls:'sticker sticker-money', text:'银洋伍元', label:'银洋伍元' },
+    { type:'sticker', cls:'sticker sticker-tag',   text:'望珍重', label:'望珍重' },
+    { type:'sticker', cls:'sticker sticker-small', text:'父安', label:'父安' },
+    { type:'sticker', cls:'sticker sticker-small', text:'母安', label:'母安' },
   ];
 
   function buildDecorItems() {
     const sealBox = document.getElementById('sealItems');
     sealBox.innerHTML = '';
-    SEALS.forEach((s, i) => {
+    SEALS.forEach(s => {
       const div = document.createElement('div');
       div.className = 'decor-item';
-      div.innerHTML = `<div class="seal ${s.cls}">${s.text}</div><div class="hint">${s.text}</div>`;
-      div.onclick = () => placeItem('seal', s);
+      div.innerHTML = `<div class="seal ${s.cls}">${s.text}</div><div class="hint">${s.label}</div>`;
+      div.addEventListener('pointerdown', e => startDragFromPanel(e, s));
       sealBox.appendChild(div);
     });
     const stBox = document.getElementById('stickerItems');
     stBox.innerHTML = '';
-    STICKERS.forEach((s, i) => {
+    STICKERS.forEach(s => {
       const div = document.createElement('div');
       div.className = 'decor-item';
-      div.innerHTML = `<span class="${s.cls}">${s.text}</span><div class="hint">${s.text}</div>`;
-      div.onclick = () => placeItem('sticker', s);
+      div.innerHTML = `<span class="${s.cls}">${s.text}</span><div class="hint">${s.label}</div>`;
+      div.addEventListener('pointerdown', e => startDragFromPanel(e, s));
       stBox.appendChild(div);
     });
   }
@@ -618,86 +619,98 @@
     document.getElementById('decorPanel').classList.toggle('show', show);
   }
 
-  // 在信件中央放置一个新元素，然后进入拖拽
-  function placeItem(kind, def) {
+  // 全局拖拽状态
+  let dragState = null;
+
+  // 从面板长按拖出：创建一个跟随手指的 ghost
+  function startDragFromPanel(e, def) {
+    e.preventDefault();
     const layer = document.getElementById('decorLayer');
     const paper = document.getElementById('cnPaper');
-    const item = document.createElement('div');
-    item.className = 'placed-item deletable';
-
-    if (kind === 'seal') {
-      item.innerHTML = `<div class="seal ${def.cls}">${def.text}</div>`;
+    const ghost = document.createElement('div');
+    ghost.className = 'placed-item dragging';
+    if (def.type === 'seal') {
+      ghost.innerHTML = `<div class="seal ${def.cls}">${def.text}</div>`;
     } else {
-      item.innerHTML = `<span class="${def.cls}">${def.text}</span>`;
+      ghost.innerHTML = `<span class="${def.cls}">${def.text}</span>`;
     }
-    layer.appendChild(item);
+    layer.appendChild(ghost);
 
-    // 初始位置：信件中央
+    // 让 ghost 居中对齐手指
+    const gRect = ghost.getBoundingClientRect();
+    const offsetX = gRect.width / 2;
+    const offsetY = gRect.height / 2;
+
+    moveGhostTo(ghost, e.clientX, e.clientY, paper, offsetX, offsetY);
+
+    dragState = {
+      ghost: ghost,
+      def: def,
+      paper: paper,
+      offsetX: offsetX,
+      offsetY: offsetY,
+      fromPanel: true,
+    };
+  }
+
+  // 已放置元素的拖动
+  function startDragPlaced(e, el) {
+    e.preventDefault();
+    e.stopPropagation();
+    el.classList.add('dragging');
+    const paper = document.getElementById('cnPaper');
+    const gRect = el.getBoundingClientRect();
+    const offsetX = e.clientX - gRect.left;
+    const offsetY = e.clientY - gRect.top;
+    dragState = {
+      ghost: el,
+      paper: paper,
+      offsetX: offsetX,
+      offsetY: offsetY,
+      fromPanel: false,
+    };
+  }
+
+  function moveGhostTo(ghost, clientX, clientY, paper, offsetX, offsetY) {
     const paperRect = paper.getBoundingClientRect();
-    item.style.left = (paperRect.width / 2 - 32) + 'px';
-    item.style.top = (paperRect.height / 2 - 32) + 'px';
-
-    // 点击 × 删除
-    item.addEventListener('click', function(e) {
-      if (e.target.classList.contains('deletable') || item.classList.contains('just-placed')) return;
-    });
-    // 双击删除
-    item.addEventListener('dblclick', () => item.remove());
-
-    // 开始拖拽
-    enableDrag(item, paper);
-
-    toast('拖动到你喜欢的位置');
+    let nx = clientX - paperRect.left - offsetX;
+    let ny = clientY - paperRect.top - offsetY;
+    const gRect = ghost.getBoundingClientRect();
+    const maxX = paperRect.width - gRect.width;
+    const maxY = paperRect.height - gRect.height;
+    nx = Math.max(-10, Math.min(maxX + 10, nx));
+    ny = Math.max(-10, Math.min(maxY + 10, ny));
+    ghost.style.left = nx + 'px';
+    ghost.style.top = ny + 'px';
   }
 
-  function enableDrag(el, paper) {
-    let startX, startY, origLeft, origTop, dragging = false;
+  // 全局 pointermove / pointerup
+  document.addEventListener('pointermove', e => {
+    if (!dragState) return;
+    moveGhostTo(dragState.ghost, e.clientX, e.clientY, dragState.paper, dragState.offsetX, dragState.offsetY);
+  });
+  document.addEventListener('pointerup', e => {
+    if (!dragState) return;
+    const { ghost, paper, fromPanel } = dragState;
+    ghost.classList.remove('dragging');
 
-    function onStart(clientX, clientY) {
-      dragging = true;
-      el.classList.add('dragging');
-      const rect = el.getBoundingClientRect();
-      startX = clientX; startY = clientY;
+    if (fromPanel) {
+      // 判断落点是否在信件区域内
       const paperRect = paper.getBoundingClientRect();
-      origLeft = rect.left - paperRect.left;
-      origTop = rect.top - paperRect.top;
-      el.style.left = origLeft + 'px';
-      el.style.top = origTop + 'px';
+      const inside = e.clientX >= paperRect.left && e.clientX <= paperRect.right &&
+                     e.clientY >= paperRect.top && e.clientY <= paperRect.bottom;
+      if (!inside) {
+        ghost.remove(); // 没落在信纸上，取消
+      } else {
+        // 落在信纸上：变成正式可拖动元素
+        ghost.classList.add('deletable');
+        ghost.addEventListener('pointerdown', ev => startDragPlaced(ev, ghost));
+        ghost.addEventListener('dblclick', () => ghost.remove());
+        toast('已放置，可继续拖动位置');
+      }
     }
-    function onMove(clientX, clientY) {
-      if (!dragging) return;
-      let nx = origLeft + (clientX - startX);
-      let ny = origTop + (clientY - startY);
-      const paperRect = paper.getBoundingClientRect();
-      const elRect = el.getBoundingClientRect();
-      const maxX = paperRect.width - elRect.width;
-      const maxY = paperRect.height - elRect.height;
-      nx = Math.max(0, Math.min(maxX, nx));
-      ny = Math.max(0, Math.min(maxY, ny));
-      el.style.left = nx + 'px';
-      el.style.top = ny + 'px';
-    }
-    function onEnd() {
-      dragging = false;
-      el.classList.remove('dragging');
-    }
-
-    el.addEventListener('mousedown', e => { e.preventDefault(); onStart(e.clientX, e.clientY); });
-    document.addEventListener('mousemove', e => onMove(e.clientX, e.clientY));
-    document.addEventListener('mouseup', onEnd);
-
-    el.addEventListener('touchstart', e => {
-      const t = e.touches[0];
-      onStart(t.clientX, t.clientY);
-    }, { passive:true });
-    document.addEventListener('touchmove', e => {
-      if (!dragging) return;
-      e.preventDefault();
-      const t = e.touches[0];
-      onMove(t.clientX, t.clientY);
-    }, { passive:false });
-    document.addEventListener('touchend', onEnd);
-  }
+    dragState = null;
+  });
 
   buildDecorItems();
 
