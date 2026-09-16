@@ -450,21 +450,50 @@
     <div class="loading-dots" style="margin-top:16px;"><span></span><span></span><span></span></div>
   </section>
 
-  <!-- ===== 5. 中文信封（点屏幕继续） ===== -->
-  <section class="view" id="view-envelope-cn" onclick="go('letter-cn')">
-    <div class="cn-env-wrap">
-      <div class="cn-envelope">
-        <div class="flap"></div>
-        <div class="to-line">
-          <div class="big" id="cnToName">父亲大人 膝下</div>
-          <div id="cnToPlace">福建 厦门</div>
-        </div>
-        <div class="from-line" id="cnFrom">男 约翰 自 新加坡 寄</div>
-        <div class="postmark">海沧<br>一九三五</div>
-        <div class="wax">批</div>
+  <!-- ===== 5. 信件对照（点屏幕继续） ===== -->
+  <section class="view" id="view-letter-compare" onclick="go('envelope-compare')">
+    <div style="text-align:center; margin-bottom:12px;">
+      <div style="font-size:11px; letter-spacing:3px; color:#a8322d;">信 件 对 照 · LETTER</div>
+      <div style="font-size:13px; color:#6b4423; margin-top:4px;">English Original / 中文家书</div>
+    </div>
+    <div style="display:flex; gap:10px; flex:1; overflow:hidden;">
+      <div style="flex:1; background:#faf3dd; border:1px solid #c9b280; padding:14px; overflow-y:auto;">
+        <div style="font-family:'Cormorant Garamond',serif; font-style:italic; font-size:11px; color:#a8322d; margin-bottom:8px;">English Original</div>
+        <div style="font-family:'Cormorant Garamond',serif; font-size:13px; line-height:1.8; white-space:pre-wrap; color:#3d2f1f;" id="cmpEnLetter2"></div>
       </div>
-      <div class="tap-hint">点 击 翻 开 信 纸</div>
-      <div class="tap-hint-en">Tap to read the letter · 点击继续</div>
+      <div style="flex:1; background:#faf3dd; border:1px solid #c9b280; padding:14px; overflow-y:auto;">
+        <div style="font-size:11px; color:#a8322d; margin-bottom:8px;">中文家书</div>
+        <div style="font-size:13px; line-height:1.9; color:#2a1f14;" id="cmpCnLetter2"></div>
+      </div>
+    </div>
+    <div style="text-align:center; margin-top:14px;">
+      <div style="font-size:13px; letter-spacing:6px; color:#a8322d; animation: pulse 2s ease-in-out infinite;">点 击 继 续</div>
+      <div style="font-family:'Cormorant Garamond',serif; font-style:italic; font-size:12px; color:#6b4423; margin-top:4px;">Tap to continue</div>
+    </div>
+  </section>
+
+  <!-- ===== 6. 信封对照（点屏幕继续） ===== -->
+  <section class="view" id="view-envelope-compare" onclick="go('letter-cn')">
+    <div style="text-align:center; margin-bottom:12px;">
+      <div style="font-size:11px; letter-spacing:3px; color:#a8322d;">信 封 对 照 · ENVELOPE</div>
+      <div style="font-size:13px; color:#6b4423; margin-top:4px;">English Envelope / 中文信封</div>
+    </div>
+    <div style="display:flex; gap:10px; flex:1; overflow:hidden;">
+      <!-- 英文信封 -->
+      <div style="flex:1; background:#e8d5a8; border:1px solid #c9b280; padding:14px; position:relative;">
+        <div style="font-family:'Cormorant Garamond',serif; font-style:italic; font-size:11px; color:#a8322d; margin-bottom:10px;">English Envelope</div>
+        <div style="font-family:'Cormorant Garamond',serif; font-size:12px; line-height:2; color:#3d2f1f;" id="cmpEnEnv2"></div>
+      </div>
+      <!-- 中文信封 -->
+      <div style="flex:1; background:#e8d5a8; border:1px solid #c9b280; padding:14px; position:relative;">
+        <div style="font-size:11px; color:#a8322d; margin-bottom:10px;">中文信封</div>
+        <div style="font-size:12px; line-height:2; color:#2a1f14;" id="cmpCnEnv2"></div>
+        <div style="position:absolute; right:10px; bottom:10px; width:32px; height:32px; border-radius:50%; background:radial-gradient(circle at 35% 35%, #c8443c, #7a1f1a); color:#f0e2c0; font-size:10px; display:flex; align-items:center; justify-content:center;">批</div>
+      </div>
+    </div>
+    <div style="text-align:center; margin-top:14px;">
+      <div style="font-size:13px; letter-spacing:6px; color:#a8322d; animation: pulse 2s ease-in-out infinite;">点 击 装 饰 家 书</div>
+      <div style="font-family:'Cormorant Garamond',serif; font-style:italic; font-size:12px; color:#6b4423; margin-top:4px;">Tap to decorate your letter</div>
     </div>
   </section>
 
@@ -472,10 +501,7 @@
   <section class="view" id="view-letter-cn">
     <div class="cn-toolbar">
       <div class="title-cn">家书已达 <span style="font-size:11px; font-weight:400; color:#6b4423; letter-spacing:1px;">Letter Delivered</span></div>
-      <div style="display:flex; gap:8px;">
-        <button class="btn-decor" onclick="toggleDecor(true)">装饰 · Decorate</button>
-        <button class="btn-en-toggle" onclick="showCompare()">对照 · Compare</button>
-      </div>
+      <button class="btn-decor" onclick="toggleDecor(true)">装饰 · Decorate</button>
     </div>
     <div class="cn-paper" id="cnPaper">
       <div class="cn-letter" id="cnLetter"></div>
@@ -502,37 +528,6 @@
 
       <div class="group-label">· 贴 纸 · Stickers ·</div>
       <div class="decor-items" id="stickerItems"></div>
-    </div>
-
-    <!-- 对照 overlay -->
-    <div class="en-overlay" id="enOverlay">
-      <h3>中 英 对 照 · Comparison</h3>
-      <div style="flex:1; overflow-y:auto;">
-        <div style="font-size:11px; letter-spacing:2px; color:#a8322d; margin:8px 0 6px;">— 信封 · ENVELOPE —</div>
-        <div style="display:flex; gap:10px; margin-bottom:16px;">
-          <div style="flex:1; background:rgba(240,226,192,0.08); padding:12px; border:1px solid rgba(240,226,192,0.2);">
-            <div style="font-family:'Cormorant Garamond',serif; font-style:italic; font-size:11px; color:#a8322d; margin-bottom:6px;">English Envelope</div>
-            <div style="font-family:'Cormorant Garamond',serif; font-size:13px; line-height:1.8;" id="cmpEnEnv"></div>
-          </div>
-          <div style="flex:1; background:rgba(240,226,192,0.08); padding:12px; border:1px solid rgba(240,226,192,0.2);">
-            <div style="font-size:11px; color:#a8322d; margin-bottom:6px;">中文信封</div>
-            <div style="font-size:13px; line-height:1.8;" id="cmpCnEnv"></div>
-          </div>
-        </div>
-
-        <div style="font-size:11px; letter-spacing:2px; color:#a8322d; margin:8px 0 6px;">— 信 件 · LETTER —</div>
-        <div style="display:flex; gap:10px;">
-          <div style="flex:1; background:rgba(240,226,192,0.08); padding:12px; border:1px solid rgba(240,226,192,0.2);">
-            <div style="font-family:'Cormorant Garamond',serif; font-style:italic; font-size:11px; color:#a8322d; margin-bottom:6px;">English Letter</div>
-            <div style="font-family:'Cormorant Garamond',serif; font-size:13px; line-height:1.8; white-space:pre-wrap;" id="cmpEnLetter"></div>
-          </div>
-          <div style="flex:1; background:rgba(240,226,192,0.08); padding:12px; border:1px solid rgba(240,226,192,0.2);">
-            <div style="font-size:11px; color:#a8322d; margin-bottom:6px;">中文家书</div>
-            <div style="font-size:13px; line-height:1.9;" id="cmpCnLetter"></div>
-          </div>
-        </div>
-      </div>
-      <button class="close-btn" onclick="hideEN()">关闭 · Close</button>
     </div>
   </section>
 
@@ -581,32 +576,27 @@
 
   function renderResult() {
     const cn = pickChinese(state.en);
-    // 中文信封
-    document.getElementById('cnToName').textContent = (state.toName || '家父') + ' 膝下';
-    document.getElementById('cnToPlace').textContent = state.toPlace || '唐山故里';
-    document.getElementById('cnFrom').textContent = '男 ' + (state.fromName || '某某') + ' 自 ' + (state.fromPlace || '南洋') + ' 寄';
-    // 中文信件
+    // 中文竖排信件（装饰页用）
     document.getElementById('cnLetter').innerHTML = '<span class="lt">' + cn.title + '</span>' + cn.body;
 
-    // 对照数据
-    document.getElementById('cmpEnEnv').innerHTML =
+    // 信件对照页
+    document.getElementById('cmpEnLetter2').textContent = state.en;
+    document.getElementById('cmpCnLetter2').textContent = cn.title + '\n' + cn.body;
+
+    // 信封对照页
+    document.getElementById('cmpEnEnv2').innerHTML =
       'From: ' + (state.fromName||'—') + '<br>' +
-      'From: ' + (state.fromPlace||'—') + '<br>' +
+      'From: ' + (state.fromPlace||'—') + '<br><br>' +
       'To: ' + (state.toName||'—') + '<br>' +
       'To: ' + (state.toPlace||'—');
-    document.getElementById('cmpCnEnv').innerHTML =
+    document.getElementById('cmpCnEnv2').innerHTML =
       '寄件人：' + (state.fromName||'—') + '<br>' +
-      '来自：' + (state.fromPlace||'—') + '<br>' +
+      '来自：' + (state.fromPlace||'—') + '<br><br>' +
       '收件人：' + (state.toName||'—') + '<br>' +
       '寄往：' + (state.toPlace||'—');
-    document.getElementById('cmpEnLetter').textContent = state.en;
-    document.getElementById('cmpCnLetter').textContent = cn.title + '\n' + cn.body;
 
-    go('envelope-cn');
+    go('letter-compare');
   }
-
-  function showCompare() { document.getElementById('enOverlay').classList.add('show'); }
-  function hideEN() { document.getElementById('enOverlay').classList.remove('show'); }
 
   function resetAll() {
     ['enLetter','fromName','fromPlace','toName','toPlace'].forEach(id => document.getElementById(id).value='');
