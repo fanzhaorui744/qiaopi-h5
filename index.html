@@ -381,58 +381,59 @@
     <div class="welcome-divider"></div>
     <p class="welcome-desc">
       数百年前，下南洋的华侨把思念与银钱封入一封封"侨批"，漂洋过海寄回家乡。<br>
-      现在，换你提笔。
+      现在，换你提笔。<br><br>
+      <span style="font-family:'Cormorant Garamond',serif; font-style:italic; color:#6b4423; font-size:12px;">Hundreds of years ago, Chinese emigrants sealed their longing and savings into "Qiaopi" — letters that crossed the sea to reach home. Now it's your turn to write.</span>
     </p>
-    <button class="btn" onclick="go('envelope-en')">开始书写</button>
+    <button class="btn" onclick="go('envelope-en')">开始书写 · Start</button>
   </section>
 
   <!-- ===== 2. 英文信封 ===== -->
   <section class="view" id="view-envelope-en">
     <div class="page-head">
-      <div class="page-step">Step 01 · Envelope</div>
+      <div class="page-step">Step 01 · 信封 / Envelope</div>
       <div class="page-title">Address the Letter</div>
-      <div class="page-hint">写上寄件人与收件人，让这封家书知道去往何方。</div>
+      <div class="page-hint">写上寄件人与收件人，让这封家书知道去往何方。<br>Fill in sender and recipient, so the letter knows where to go.</div>
     </div>
     <div class="envelope-visual">
       <div class="envelope-stamp">STAMP<br>侨批</div>
       <div class="envelope-pm">海沧<br>1935</div>
       <div class="form-row">
         <div class="form-field">
-          <label>Your Name</label>
+          <label>Your Name · 寄件人</label>
           <input id="fromName" type="text" placeholder="e.g. John Lee">
         </div>
         <div class="form-field">
-          <label>From</label>
+          <label>From · 来自</label>
           <input id="fromPlace" type="text" placeholder="e.g. Singapore">
         </div>
       </div>
       <div class="form-row">
         <div class="form-field">
-          <label>To</label>
+          <label>To · 收件人</label>
           <input id="toName" type="text" placeholder="e.g. Father">
         </div>
         <div class="form-field">
-          <label>Destination</label>
+          <label>Destination · 寄往</label>
           <input id="toPlace" type="text" placeholder="e.g. Xiamen, China">
         </div>
       </div>
     </div>
-    <button class="btn" onclick="goLetter()">Next · Write the Letter</button>
+    <button class="btn" onclick="goLetter()">Next · 下一步</button>
   </section>
 
   <!-- ===== 3. 英文信纸 ===== -->
   <section class="view" id="view-letter-en">
     <div class="page-head">
-      <div class="page-step">Step 02 · Write</div>
+      <div class="page-step">Step 02 · 写信 / Write</div>
       <div class="page-title">Write Home</div>
-      <div class="page-hint">用英文写下你想告诉家人的话。</div>
+      <div class="page-hint">用英文写下你想告诉家人的话。<br>Write your message to your family in English.</div>
     </div>
     <div class="letter-paper">
       <div class="letter-greeting">Dear my family,</div>
       <textarea class="letter-input" id="enLetter" placeholder="I have arrived safely in the south... It has been a hard year, but I will send money home soon. Tell mother I miss her cooking..." oninput="updateCount()"></textarea>
     </div>
     <div class="char-count"><span id="charCount">0</span> words</div>
-    <button class="btn" onclick="finishWrite()">Finish · Seal & Translate</button>
+    <button class="btn" onclick="finishWrite()">Finish · 完成并翻译</button>
   </section>
 
   <!-- ===== 4. 加载 ===== -->
@@ -463,17 +464,17 @@
         <div class="wax">批</div>
       </div>
       <div class="tap-hint">点 击 翻 开 信 纸</div>
-      <div class="tap-hint-en">Tap to read the letter</div>
+      <div class="tap-hint-en">Tap to read the letter · 点击继续</div>
     </div>
   </section>
 
   <!-- ===== 6. 中文信件 ===== -->
   <section class="view" id="view-letter-cn">
     <div class="cn-toolbar">
-      <div class="title-cn">家书已达</div>
+      <div class="title-cn">家书已达 <span style="font-size:11px; font-weight:400; color:#6b4423; letter-spacing:1px;">Letter Delivered</span></div>
       <div style="display:flex; gap:8px;">
-        <button class="btn-decor" onclick="toggleDecor(true)">装饰</button>
-        <button class="btn-en-toggle" onclick="showEN()">English</button>
+        <button class="btn-decor" onclick="toggleDecor(true)">装饰 · Decorate</button>
+        <button class="btn-en-toggle" onclick="showCompare()">对照 · Compare</button>
       </div>
     </div>
     <div class="cn-paper" id="cnPaper">
@@ -481,29 +482,57 @@
       <div class="decor-layer" id="decorLayer"></div>
     </div>
     <div class="cn-actions">
-      <button class="btn ghost" onclick="toast('原型演示：保存图片功能将在正式版实现')">保存家书</button>
-      <button class="btn" onclick="resetAll()">再写一封</button>
+      <button class="btn ghost" onclick="toast('原型演示：保存图片功能将在正式版实现')">保存 · Save</button>
+      <button class="btn" onclick="resetAll()">再写一封 · Again</button>
     </div>
 
     <!-- 装饰面板 -->
     <div class="decor-panel" id="decorPanel">
       <div class="panel-title">
-        <span>装饰这封家书</span>
+        <span>装饰这封家书 · Decorate</span>
         <span class="panel-close" onclick="toggleDecor(false)">×</span>
       </div>
-      <div style="font-size:11px; color:#6b4423; margin-bottom:8px; line-height:1.6;">点选下方印章或贴纸，然后在信纸上拖动到你想要的位置。</div>
+      <div style="font-size:11px; color:#6b4423; margin-bottom:8px; line-height:1.6;">
+        按住印章或贴纸，拖到信纸上的任意位置。<br>
+        Press and hold a seal or sticker, then drag it onto the letter.
+      </div>
 
-      <div class="group-label">· 印 章 ·</div>
+      <div class="group-label">· 印 章 · Seals ·</div>
       <div class="decor-items" id="sealItems"></div>
 
-      <div class="group-label">· 贴 纸 ·</div>
+      <div class="group-label">· 贴 纸 · Stickers ·</div>
       <div class="decor-items" id="stickerItems"></div>
     </div>
 
-    <div class="en-overlay" id="enOverlay" onclick="hideEN(event)">
-      <h3>English Original · 英文原文</h3>
-      <div class="en-text" id="enTextFull"></div>
-      <button class="close-btn" onclick="hideEN(event)">关闭</button>
+    <!-- 对照 overlay -->
+    <div class="en-overlay" id="enOverlay">
+      <h3>中 英 对 照 · Comparison</h3>
+      <div style="flex:1; overflow-y:auto;">
+        <div style="font-size:11px; letter-spacing:2px; color:#a8322d; margin:8px 0 6px;">— 信封 · ENVELOPE —</div>
+        <div style="display:flex; gap:10px; margin-bottom:16px;">
+          <div style="flex:1; background:rgba(240,226,192,0.08); padding:12px; border:1px solid rgba(240,226,192,0.2);">
+            <div style="font-family:'Cormorant Garamond',serif; font-style:italic; font-size:11px; color:#a8322d; margin-bottom:6px;">English Envelope</div>
+            <div style="font-family:'Cormorant Garamond',serif; font-size:13px; line-height:1.8;" id="cmpEnEnv"></div>
+          </div>
+          <div style="flex:1; background:rgba(240,226,192,0.08); padding:12px; border:1px solid rgba(240,226,192,0.2);">
+            <div style="font-size:11px; color:#a8322d; margin-bottom:6px;">中文信封</div>
+            <div style="font-size:13px; line-height:1.8;" id="cmpCnEnv"></div>
+          </div>
+        </div>
+
+        <div style="font-size:11px; letter-spacing:2px; color:#a8322d; margin:8px 0 6px;">— 信 件 · LETTER —</div>
+        <div style="display:flex; gap:10px;">
+          <div style="flex:1; background:rgba(240,226,192,0.08); padding:12px; border:1px solid rgba(240,226,192,0.2);">
+            <div style="font-family:'Cormorant Garamond',serif; font-style:italic; font-size:11px; color:#a8322d; margin-bottom:6px;">English Letter</div>
+            <div style="font-family:'Cormorant Garamond',serif; font-size:13px; line-height:1.8; white-space:pre-wrap;" id="cmpEnLetter"></div>
+          </div>
+          <div style="flex:1; background:rgba(240,226,192,0.08); padding:12px; border:1px solid rgba(240,226,192,0.2);">
+            <div style="font-size:11px; color:#a8322d; margin-bottom:6px;">中文家书</div>
+            <div style="font-size:13px; line-height:1.9;" id="cmpCnLetter"></div>
+          </div>
+        </div>
+      </div>
+      <button class="close-btn" onclick="hideEN()">关闭 · Close</button>
     </div>
   </section>
 
@@ -558,16 +587,26 @@
     document.getElementById('cnFrom').textContent = '男 ' + (state.fromName || '某某') + ' 自 ' + (state.fromPlace || '南洋') + ' 寄';
     // 中文信件
     document.getElementById('cnLetter').innerHTML = '<span class="lt">' + cn.title + '</span>' + cn.body;
-    // 英文原文 overlay
-    document.getElementById('enTextFull').textContent = state.en;
+
+    // 对照数据
+    document.getElementById('cmpEnEnv').innerHTML =
+      'From: ' + (state.fromName||'—') + '<br>' +
+      'From: ' + (state.fromPlace||'—') + '<br>' +
+      'To: ' + (state.toName||'—') + '<br>' +
+      'To: ' + (state.toPlace||'—');
+    document.getElementById('cmpCnEnv').innerHTML =
+      '寄件人：' + (state.fromName||'—') + '<br>' +
+      '来自：' + (state.fromPlace||'—') + '<br>' +
+      '收件人：' + (state.toName||'—') + '<br>' +
+      '寄往：' + (state.toPlace||'—');
+    document.getElementById('cmpEnLetter').textContent = state.en;
+    document.getElementById('cmpCnLetter').textContent = cn.title + '\n' + cn.body;
+
     go('envelope-cn');
   }
 
-  function showEN() { document.getElementById('enOverlay').classList.add('show'); }
-  function hideEN(e) {
-    if (e) e.stopPropagation();
-    document.getElementById('enOverlay').classList.remove('show');
-  }
+  function showCompare() { document.getElementById('enOverlay').classList.add('show'); }
+  function hideEN() { document.getElementById('enOverlay').classList.remove('show'); }
 
   function resetAll() {
     ['enLetter','fromName','fromPlace','toName','toPlace'].forEach(id => document.getElementById(id).value='');
@@ -578,20 +617,20 @@
 
   // ============ 装饰：印章 & 贴纸 ============
   const SEALS = [
-    { type:'seal', text:'平安',   cls:'seal-square', label:'平安' },
-    { type:'seal', text:'家书',   cls:'seal-square', label:'家书' },
-    { type:'seal', text:'思故里', cls:'seal-round',  label:'思故里' },
+    { type:'seal', text:'平安',   cls:'seal-square', label:'平安 Peace' },
+    { type:'seal', text:'家书',   cls:'seal-square', label:'家书 Letter' },
+    { type:'seal', text:'思故里', cls:'seal-round',  label:'思故里 Homesick' },
     { type:'seal', text:'家书抵万金', cls:'seal-rect', label:'家书抵万金' },
-    { type:'seal', text:'珍重', cls:'seal-vertical', label:'珍重' },
+    { type:'seal', text:'珍重', cls:'seal-vertical', label:'珍重 Take Care' },
     { type:'seal', text:'雁足传书', cls:'seal-round', label:'雁足传书' },
   ];
   const STICKERS = [
     { type:'sticker', cls:'sticker sticker-tag',   text:'母亲大人膝下', label:'母亲大人膝下' },
-    { type:'sticker', cls:'sticker sticker-tag',   text:'一切安好', label:'一切安好' },
-    { type:'sticker', cls:'sticker sticker-money', text:'银洋伍元', label:'银洋伍元' },
+    { type:'sticker', cls:'sticker sticker-tag',   text:'一切安好', label:'一切安好 Well' },
+    { type:'sticker', cls:'sticker sticker-money', text:'银洋伍元', label:'银洋伍元 $5' },
     { type:'sticker', cls:'sticker sticker-tag',   text:'望珍重', label:'望珍重' },
-    { type:'sticker', cls:'sticker sticker-small', text:'父安', label:'父安' },
-    { type:'sticker', cls:'sticker sticker-small', text:'母安', label:'母安' },
+    { type:'sticker', cls:'sticker sticker-small', text:'父安', label:'父安 Father' },
+    { type:'sticker', cls:'sticker sticker-small', text:'母安', label:'母安 Mother' },
   ];
 
   function buildDecorItems() {
