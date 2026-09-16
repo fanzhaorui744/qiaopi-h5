@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>侨批 · 一封家书的旅程</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%236b4423'/%3E%3Ctext x='16' y='22' font-size='18' text-anchor='middle' fill='%23f0e2c0' font-family='serif'%3E批%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { height:100%; }
+  body {
+    font-family: 'Noto Serif SC', 'Songti SC', 'STSong', serif;
+    background: #1f1710;
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(168,50,45,0.08), transparent 40%),
+      radial-gradient(circle at 80% 90%, rgba(107,68,35,0.2), transparent 50%);
+    min-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    color:#3d2f1f;
+  }
+  .phone {
+    width:100%; max-width:420px; height:100vh; max-height:900px;
+    background:#f0e2c0;
+    position:relative; overflow:hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+  }
+  @media (min-width: 480px) {
+    .phone { border-radius: 36px; height: min(900px, 94vh); }
+  }
+  .phone::before {
+    content:''; position:absolute; inset:0; pointer-events:none; z-index:1;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(107,68,35,0.03) 0 1px, transparent 1px 3px),
+      radial-gradient(ellipse at top left, rgba(168,50,45,0.06), transparent 60%);
+    mix-blend-mode: multiply;
+  }
+  .view {
+    position:absolute; inset:0; padding:32px 28px;
+    display:none; flex-direction:column;
+    z-index:2; overflow-y:auto;
+    animation: fadeIn .5s ease;
+  }
+  .view.active { display:flex; }
+  @keyframes fadeIn { from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:none;} }
+
+  /* ============ 通用 ============ */
+  .btn {
+    display:block; width:100%; padding:16px;
+    background:#6b4423; color:#f0e2c0;
+    border:none; border-radius:2px;
+    font-family:inherit; font-size:15px; letter-spacing:4px;
+    cursor:pointer; transition: all .2s;
+    margin-top:auto;
+    box-shadow: 0 4px 0 #4a2e16;
+  }
+  .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #4a2e16; }
+  .btn.ghost { background:transparent; color:#6b4423; box-shadow:none; border:1px solid #6b4423; }
+
+  .page-head { margin-bottom:20px; }
+  .page-step {
+    font-family:'Cormorant Garamond', serif; font-size:12px;
+    letter-spacing:3px; color:#a8322d; text-transform:uppercase; margin-bottom:6px;
+  }
+  .page-title { font-size:24px; font-weight:700; letter-spacing:3px; }
+  .page-hint { font-size:12px; color:#6b4423; margin-top:6px; line-height:1.7; }
+
+  /* ============ 欢迎页 ============ */
+  #view-welcome { align-items:center; justify-content:center; text-align:center; }
+  .welcome-stamp {
+    width:110px; height:110px; border:2px solid #a8322d; border-radius:50%;
+    color:#a8322d; display:flex; align-items:center; justify-content:center;
+    font-size:14px; letter-spacing:2px; line-height:1.5;
+    transform: rotate(-12deg); margin-bottom:32px;
+    font-family: 'Cormorant Garamond', serif;
+    opacity:.85;
+  }
+  .welcome-title { font-size: 38px; font-weight:900; letter-spacing:8px; color:#3d2f1f; margin-bottom:8px; }
+  .welcome-subtitle-en {
+    font-family:'Cormorant Garamond', serif; font-style:italic;
+    font-size:18px; color:#6b4423; margin-bottom:28px; letter-spacing:1px;
+  }
+  .welcome-desc { font-size:13px; line-height:2; color:#6b4423; max-width:280px; margin-bottom:40px; }
+  .welcome-divider { width:40px; height:1px; background:#6b4423; margin: 0 auto 32px; }
+
+  /* ============ 信封（英文） ============ */
+  .envelope-visual {
+    background:#e8d5a8; border:1px solid #c9b280;
+    padding:20px; position:relative; margin-bottom:16px;
+    box-shadow: 0 6px 20px rgba(107,68,35,0.15); flex:1;
+  }
+  .envelope-visual::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:60px;
+    background: linear-gradient(180deg, #d4b87a, transparent);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+  }
+  .envelope-stamp {
+    position:absolute; top:14px; right:14px;
+    width:48px; height:60px; background:#f0e2c0;
+    border:1px dashed #a8322d; display:flex; align-items:center; justify-content:center;
+    color:#a8322d; font-size:10px; text-align:center; line-height:1.2; z-index:2;
+  }
+  .envelope-pm {
+    position:absolute; top:18px; right:70px;
+    width:54px; height:54px; border:1.5px solid #a8322d; border-radius:50%;
+    color:#a8322d; font-size:8px; text-align:center;
+    display:flex; align-items:center; justify-content:center;
+    transform:rotate(-15deg); opacity:.8; z-index:2;
+  }
+  .form-field { margin-bottom:14px; position:relative; z-index:3; }
+  .form-field label {
+    display:block; font-size:11px; letter-spacing:2px;
+    color:#6b4423; margin-bottom:4px; text-transform:uppercase;
+    font-family:'Cormorant Garamond', serif;
+  }
+  .form-field input {
+    width:100%; padding:10px 4px; border:none; border-bottom:1px solid #6b4423;
+    background:transparent; outline:none;
+    font-family:'Cormorant Garamond', 'Noto Serif SC', serif;
+    font-size:16px; color:#3d2f1f;
+  }
+  .form-field input::placeholder { color:#b5a078; font-style:italic; }
+  .form-row { display:flex; gap:12px; }
+  .form-row .form-field { flex:1; }
+
+  /* ============ 信纸（英文） ============ */
+  .letter-paper {
+    background:#faf3dd;
+    border:1px solid #c9b280;
+    padding:24px 20px; flex:1;
+    box-shadow: 0 6px 20px rgba(107,68,35,0.15);
+    position:relative; margin-bottom:12px;
+  }
+  .letter-paper::before {
+    content:''; position:absolute; left:38px; top:0; bottom:0;
+    width:1px; background:rgba(168,50,45,0.25);
+  }
+  .letter-greeting {
+    font-family:'Cormorant Garamond', serif; font-style:italic;
+    font-size:15px; color:#6b4423; margin-bottom:12px; padding-left:18px;
+  }
+  .letter-input {
+    width:100%; min-height:240px; border:none; outline:none;
+    background:transparent; resize:none;
+    font-family:'Cormorant Garamond', 'Noto Serif SC', serif;
+    font-size:17px; line-height:2.1; color:#3d2f1f; padding-left:18px;
+    background-image: repeating-linear-gradient(transparent 0, transparent 33px, rgba(107,68,35,0.15) 33px, rgba(107,68,35,0.15) 34px);
+  }
+  .letter-input::placeholder { color:#a89878; font-style:italic; }
+  .char-count { text-align:right; font-size:11px; color:#a89878; font-family:'Cormorant Garamond', serif; letter-spacing:1px; }
+
+  /* ============ 加载 ============ */
+  #view-loading { align-items:center; justify-content:center; text-align:center; }
+  .loading-ship { width:120px; height:120px; margin-bottom:24px; animation: float 3s ease-in-out infinite; }
+  @keyframes float { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-8px);} }
+  .loading-text { font-size:18px; letter-spacing:4px; color:#3d2f1f; margin-bottom:8px; }
+  .loading-sub { font-family:'Cormorant Garamond', serif; font-style:italic; color:#6b4423; font-size:14px; }
+  .loading-dots span {
+    display:inline-block; width:6px; height:6px; background:#a8322d;
+    border-radius:50%; margin:0 3px; animation: blink 1.4s infinite both;
+  }
+  .loading-dots span:nth-child(2){animation-delay:.2s}
+  .loading-dots span:nth-child(3){animation-delay:.4s}
+  @keyframes blink { 0%,80%,100%{opacity:.2;} 40%{opacity:1;} }
+
+  /* ============ 中文信封（揭幕） ============ */
+  #view-envelope-cn { padding:0; cursor:pointer; }
+  .cn-env-wrap {
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:32px 28px; text-align:center;
+  }
+  .cn-envelope {
+    width:100%; max-width:320px; aspect-ratio: 3/2;
+    background:#e8d5a8; border:1px solid #c9b280;
+    position:relative; box-shadow: 0 10px 30px rgba(107,68,35,0.25);
+    animation: envIn .8s ease;
+  }
+  @keyframes envIn { from{opacity:0; transform:scale(.92) rotate(-2deg);} to{opacity:1; transform:none;} }
+  .cn-envelope .flap {
+    position:absolute; top:0; left:0; right:0; height:45%;
+    background: linear-gradient(180deg, #d4b87a, #e0c890);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+  }
+  .cn-envelope .to-line {
+    position:absolute; left:24px; bottom:30%;
+    font-family:'Noto Serif SC', serif; font-size:15px;
+    color:#2a1f14; line-height:2; text-align:left;
+  }
+  .cn-envelope .to-line .big { font-size:18px; font-weight:700; }
+  .cn-envelope .from-line {
+    position:absolute; left:24px; bottom:12%;
+    font-family:'Noto Serif SC', serif; font-size:11px; color:#6b4423;
+  }
+  .cn-envelope .postmark {
+    position:absolute; top:18%; right:18px;
+    width:54px; height:54px; border:1.5px solid #a8322d; border-radius:50%;
+    color:#a8322d; font-size:8px; text-align:center;
+    display:flex; align-items:center; justify-content:center;
+    transform:rotate(-15deg); opacity:.85;
+  }
+  .cn-envelope .wax {
+    position:absolute; right:16px; bottom:18%;
+    width:44px; height:44px; border-radius:50%;
+    background: radial-gradient(circle at 35% 35%, #c8443c, #7a1f1a);
+    color:#f0e2c0; font-size:12px; display:flex; align-items:center; justify-content:center;
+    box-shadow: inset 0 -3px 6px rgba(0,0,0,.3);
+  }
+  .tap-hint {
+    margin-top:36px; font-size:13px; letter-spacing:6px; color:#a8322d;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .tap-hint-en {
+    font-family:'Cormorant Garamond', serif; font-style:italic;
+    font-size:13px; color:#6b4423; margin-top:6px; letter-spacing:1px;
+  }
+  @keyframes pulse { 0%,100%{opacity:.5;} 50%{opacity:1;} }
+
+  /* ============ 中文信件 ============ */
+  #view-letter-cn { padding:20px 20px 24px; }
+  .cn-toolbar {
+    display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;
+  }
+  .cn-toolbar .title-cn { font-size:18px; font-weight:700; letter-spacing:3px; }
+  .btn-en-toggle {
+    font-family:'Cormorant Garamond', serif; font-size:12px; letter-spacing:2px;
+    background:transparent; border:1px solid #6b4423; color:#6b4423;
+    padding:6px 14px; cursor:pointer; border-radius:2px;
+  }
+  .cn-paper {
+    flex:1; background:#faf3dd; border:1px solid #c9b280;
+    padding:20px; display:flex; justify-content:flex-end;
+    box-shadow: 0 6px 20px rgba(107,68,35,0.15);
+    overflow:hidden; position:relative;
+  }
+  .cn-letter {
+    writing-mode: vertical-rl;
+    font-family:'Noto Serif SC', serif;
+    font-size:15px; line-height:2.2; color:#2a1f14;
+    letter-spacing:3px; height:100%; max-height:420px; flex:0 0 auto;
+  }
+  .cn-letter .lt { font-weight:700; font-size:16px; margin-bottom:10px; }
+  .cn-actions { display:flex; gap:10px; margin-top:14px; }
+  .cn-actions .btn { margin-top:0; flex:1; padding:13px; }
+
+  /* 英文原文 overlay */
+  .en-overlay {
+    position:absolute; inset:0; background:rgba(31,23,16,0.96);
+    z-index:50; padding:32px 24px; display:none; flex-direction:column;
+    animation: fadeIn .3s ease;
+  }
+  .en-overlay.show { display:flex; }
+  .en-overlay h3 {
+    font-family:'Cormorant Garamond', serif; font-style:italic;
+    color:#f0e2c0; font-size:16px; margin-bottom:16px; letter-spacing:1px;
+  }
+  .en-overlay .en-text {
+    flex:1; overflow-y:auto;
+    font-family:'Cormorant Garamond', serif; font-size:16px; line-height:1.9;
+    color:#f0e2c0; white-space:pre-wrap;
+  }
+  .en-overlay .close-btn {
+    margin-top:16px; padding:12px; text-align:center;
+    border:1px solid #f0e2c0; color:#f0e2c0; cursor:pointer;
+    font-family:inherit; letter-spacing:4px; font-size:14px; background:transparent;
+  }
+
+  /* toast */
+  .toast {
+    position:fixed; left:50%; bottom:60px; transform:translateX(-50%);
+    background:rgba(61,47,31,.92); color:#f0e2c0;
+    padding:10px 20px; border-radius:20px; font-size:13px;
+    opacity:0; transition: opacity .3s; pointer-events:none; z-index:99;
+  }
+  .toast.show { opacity:1; }
+</style>
+</head>
+<body>
+
+<div class="phone">
+
+  <!-- ===== 1. 欢迎 ===== -->
+  <section class="view active" id="view-welcome">
+    <div class="welcome-stamp">POST<br>1930s<br>闽侨批局</div>
+    <h1 class="welcome-title">一封侨批</h1>
+    <div class="welcome-subtitle-en">A Letter from Across the Sea</div>
+    <div class="welcome-divider"></div>
+    <p class="welcome-desc">
+      数百年前，下南洋的华侨把思念与银钱封入一封封"侨批"，漂洋过海寄回家乡。<br>
+      现在，换你提笔。
+    </p>
+    <button class="btn" onclick="go('envelope-en')">开始书写</button>
+  </section>
+
+  <!-- ===== 2. 英文信封 ===== -->
+  <section class="view" id="view-envelope-en">
+    <div class="page-head">
+      <div class="page-step">Step 01 · Envelope</div>
+      <div class="page-title">Address the Letter</div>
+      <div class="page-hint">写上寄件人与收件人，让这封家书知道去往何方。</div>
+    </div>
+    <div class="envelope-visual">
+      <div class="envelope-stamp">STAMP<br>侨批</div>
+      <div class="envelope-pm">海沧<br>1935</div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Your Name</label>
+          <input id="fromName" type="text" placeholder="e.g. John Lee">
+        </div>
+        <div class="form-field">
+          <label>From</label>
+          <input id="fromPlace" type="text" placeholder="e.g. Singapore">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>To</label>
+          <input id="toName" type="text" placeholder="e.g. Father">
+        </div>
+        <div class="form-field">
+          <label>Destination</label>
+          <input id="toPlace" type="text" placeholder="e.g. Xiamen, China">
+        </div>
+      </div>
+    </div>
+    <button class="btn" onclick="goLetter()">Next · Write the Letter</button>
+  </section>
+
+  <!-- ===== 3. 英文信纸 ===== -->
+  <section class="view" id="view-letter-en">
+    <div class="page-head">
+      <div class="page-step">Step 02 · Write</div>
+      <div class="page-title">Write Home</div>
+      <div class="page-hint">用英文写下你想告诉家人的话。</div>
+    </div>
+    <div class="letter-paper">
+      <div class="letter-greeting">Dear my family,</div>
+      <textarea class="letter-input" id="enLetter" placeholder="I have arrived safely in the south... It has been a hard year, but I will send money home soon. Tell mother I miss her cooking..." oninput="updateCount()"></textarea>
+    </div>
+    <div class="char-count"><span id="charCount">0</span> words</div>
+    <button class="btn" onclick="finishWrite()">Finish · Seal & Translate</button>
+  </section>
+
+  <!-- ===== 4. 加载 ===== -->
+  <section class="view" id="view-loading">
+    <svg class="loading-ship" viewBox="0 0 120 120" fill="none">
+      <path d="M20 80 L100 80 L90 95 L30 95 Z" fill="#6b4423"/>
+      <rect x="55" y="40" width="4" height="40" fill="#3d2f1f"/>
+      <path d="M59 42 L90 65 L59 70 Z" fill="#f0e2c0" stroke="#6b4423"/>
+      <path d="M51 45 L30 65 L51 70 Z" fill="#e8d5a8" stroke="#6b4423"/>
+      <path d="M10 100 Q 25 95 40 100 T 70 100 T 100 100 T 130 100" stroke="#a8322d" stroke-width="2" fill="none"/>
+    </svg>
+    <div class="loading-text">侨批正在译回家乡</div>
+    <div class="loading-sub">Translating your letter...</div>
+    <div class="loading-dots" style="margin-top:16px;"><span></span><span></span><span></span></div>
+  </section>
+
+  <!-- ===== 5. 中文信封（点屏幕继续） ===== -->
+  <section class="view" id="view-envelope-cn" onclick="go('letter-cn')">
+    <div class="cn-env-wrap">
+      <div class="cn-envelope">
+        <div class="flap"></div>
+        <div class="to-line">
+          <div class="big" id="cnToName">父亲大人 膝下</div>
+          <div id="cnToPlace">福建 厦门</div>
+        </div>
+        <div class="from-line" id="cnFrom">男 约翰 自 新加坡 寄</div>
+        <div class="postmark">海沧<br>一九三五</div>
+        <div class="wax">批</div>
+      </div>
+      <div class="tap-hint">点 击 翻 开 信 纸</div>
+      <div class="tap-hint-en">Tap to read the letter</div>
+    </div>
+  </section>
+
+  <!-- ===== 6. 中文信件 ===== -->
+  <section class="view" id="view-letter-cn">
+    <div class="cn-toolbar">
+      <div class="title-cn">家书已达</div>
+      <button class="btn-en-toggle" onclick="showEN()">English</button>
+    </div>
+    <div class="cn-paper">
+      <div class="cn-letter" id="cnLetter"></div>
+    </div>
+    <div class="cn-actions">
+      <button class="btn ghost" onclick="toast('原型演示：保存图片功能将在正式版实现')">保存家书</button>
+      <button class="btn" onclick="resetAll()">再写一封</button>
+    </div>
+
+    <div class="en-overlay" id="enOverlay" onclick="hideEN(event)">
+      <h3>English Original · 英文原文</h3>
+      <div class="en-text" id="enTextFull"></div>
+      <button class="close-btn" onclick="hideEN(event)">关闭</button>
+    </div>
+  </section>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+  const state = { en:'', fromName:'', fromPlace:'', toName:'', toPlace:'' };
+
+  function go(name) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-' + name).classList.add('active');
+  }
+  function updateCount() {
+    const v = document.getElementById('enLetter').value.trim();
+    document.getElementById('charCount').textContent = v ? v.split(/\s+/).length : 0;
+  }
+
+  function goLetter() {
+    state.fromName = document.getElementById('fromName').value.trim();
+    state.fromPlace = document.getElementById('fromPlace').value.trim();
+    state.toName = document.getElementById('toName').value.trim();
+    state.toPlace = document.getElementById('toPlace').value.trim();
+    if (!state.fromName || !state.toName) { toast('请填写寄件人与收件人'); return; }
+    go('letter-en');
+  }
+
+  function pickChinese(en) {
+    const len = en.length;
+    const samples = [
+      { title:'禀父母', body:'父母亲大人膝下敬禀者。男自抵南洋，倏忽半载。异域风寒，幸得平安。遥望家乡，寸心常系。今寄回银钱若干，望大人善自珍重。男远游，不能侍侧，死罪死罪。' },
+      { title:'禀父母亲', body:'父母亲大人膝下敬禀者。男自丙午秋辞家南渡，抵叻已逾一载。此地风物虽殊，乡音未改。日间佣工于店肆，夜则挑灯展读家书。母亲玉体起居何如？父亲咳嗽可愈否？家中弟妹读书尚勤否？男在此一切安善，望大人勿念。兹付回英银若干，聊佐甘旨。临书依依，不尽欲言。' },
+      { title:'禀双亲大人', body:'父母亲大人尊前敬禀者。男别家乡，转瞬三霜。初抵南洋，举目无亲，赁居于牛车水侧，日则操持劳役，夜则思亲泣下。赖祖宗庇佑，渐得安身。此间华洋杂处，习俗与故土迥异，然每逢佳节，辄登楼高望，犹见唐山云山万重。母亲大人旧疾全愈否？父亲步履尚健否？男在外虽苦，然不敢稍懈，所冀者，家中大小平安，他日稍有积蓄，即当归乡省亲。兹付回英银百元，望查收。临颖神驰，不尽欲白。男 百拜' }
+    ];
+    if (len < 200) return samples[0];
+    if (len < 500) return samples[1];
+    return samples[2];
+  }
+
+  function finishWrite() {
+    state.en = document.getElementById('enLetter').value.trim();
+    if (!state.en) { toast('请先写下几句心里话'); return; }
+    go('loading');
+    setTimeout(renderResult, 2000);
+  }
+
+  function renderResult() {
+    const cn = pickChinese(state.en);
+    // 中文信封
+    document.getElementById('cnToName').textContent = (state.toName || '家父') + ' 膝下';
+    document.getElementById('cnToPlace').textContent = state.toPlace || '唐山故里';
+    document.getElementById('cnFrom').textContent = '男 ' + (state.fromName || '某某') + ' 自 ' + (state.fromPlace || '南洋') + ' 寄';
+    // 中文信件
+    document.getElementById('cnLetter').innerHTML = '<span class="lt">' + cn.title + '</span>' + cn.body;
+    // 英文原文 overlay
+    document.getElementById('enTextFull').textContent = state.en;
+    go('envelope-cn');
+  }
+
+  function showEN() { document.getElementById('enOverlay').classList.add('show'); }
+  function hideEN(e) {
+    if (e) e.stopPropagation();
+    document.getElementById('enOverlay').classList.remove('show');
+  }
+
+  function resetAll() {
+    ['enLetter','fromName','fromPlace','toName','toPlace'].forEach(id => document.getElementById(id).value='');
+    updateCount();
+    go('welcome');
+  }
+
+  let toastTimer;
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  // 移除平台水印（右下角"豆包工作生成"悬浮标识）
+  (function removeWatermark() {
+    function hide() {
+      document.querySelectorAll('div,span,a').forEach(el => {
+        const txt = (el.textContent || '').trim();
+        if (txt === '豆包工作生成' || (txt.includes('豆包工作生成') && el.children.length <= 2)) {
+          let node = el;
+          // 向上找 3 层，把整颗悬浮胶囊藏掉
+          for (let i = 0; i < 4 && node; i++) {
+            node.style.display = 'none';
+            node = node.parentElement;
+          }
+        }
+      });
+    }
+    hide();
+    // 平台水印可能延迟注入，监听 DOM 变化持续清理
+    const mo = new MutationObserver(hide);
+    mo.observe(document.documentElement, { childList: true, subtree: true });
+  })();
+</script>
+</body>
+</html>
