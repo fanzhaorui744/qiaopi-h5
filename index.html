@@ -418,6 +418,99 @@
   .scan-step .doing { color:#a8322d; font-weight:700; }
   .scan-step .wait { color:#a89878; }
 
+
+  /* ============ 结果展示页 ============ */
+  .result-header {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:10px 4px 14px;
+  }
+  .result-title {
+    font-size:13px; letter-spacing:3px; color:#6b4423;
+    font-family:'Cormorant Garamond',serif;
+  }
+  .translate-btn {
+    background:#a8322d; color:#f0e2c0; border:none; border-radius:4px;
+    padding:6px 14px; font-size:12px; letter-spacing:2px; cursor:pointer;
+    font-family:inherit;
+  }
+  .translate-btn:hover { background:#8b2a25; }
+
+  /* 中文信封容器 */
+  .env-cn-wrap {
+    flex:1; display:flex; align-items:center; justify-content:center;
+    padding:10px 0;
+  }
+  .env-cn-box {
+    position:relative; width:280px; max-height:560px;
+  }
+  .env-cn-box img {
+    width:100%; height:auto; display:block;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));
+  }
+  .env-cn-overlay {
+    position:absolute; top:0; left:0; width:100%; height:100%;
+    pointer-events:none;
+  }
+  .env-cn-text {
+    position:absolute; writing-mode:vertical-rl; text-orientation:upright;
+    color:#2a1a0a; font-family:'KaiTi','STKaiti','楷体',serif;
+    text-shadow:0 0 2px rgba(240,226,192,0.8);
+  }
+  .env-cn-to { right:12%; top:15%; font-size:22px; font-weight:700; letter-spacing:4px; }
+  .env-cn-addr { right:4%; top:18%; font-size:13px; letter-spacing:2px; }
+  .env-cn-from { left:4%; top:20%; font-size:13px; letter-spacing:2px; }
+  .env-cn-money { left:12%; top:15%; font-size:14px; color:#a8322d; font-weight:700; letter-spacing:2px; }
+
+  /* 模态框（英文信封/英文信） */
+  .modal-overlay {
+    position:fixed; top:0; left:0; width:100%; height:100%;
+    background:rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center;
+    z-index:100; padding:20px;
+  }
+  .modal-overlay.active { display:flex; }
+  .modal-box {
+    background:#f0e2c0; border:2px solid #6b4423; border-radius:8px;
+    padding:24px; max-width:360px; width:100%; max-height:80vh; overflow-y:auto;
+    position:relative; box-shadow:0 8px 32px rgba(0,0,0,0.3);
+  }
+  .modal-close {
+    position:absolute; top:8px; right:12px; font-size:24px; color:#6b4423;
+    cursor:pointer; background:none; border:none; line-height:1;
+  }
+  .modal-title {
+    font-size:14px; letter-spacing:3px; color:#a8322d; text-align:center;
+    margin-bottom:16px; font-family:'Cormorant Garamond',serif;
+  }
+  .modal-envelope {
+    background:#faf3dd; border:1px solid #c9b280; padding:20px;
+    font-family:'Cormorant Garamond',serif; font-size:14px; line-height:2;
+    color:#3d2f1f;
+  }
+  .modal-envelope .env-label { font-size:10px; letter-spacing:2px; color:#a89878; }
+  .modal-letter {
+    background:#faf3dd; border:1px solid #c9b280; padding:20px;
+    font-family:'Cormorant Garamond',serif; font-size:14px; line-height:1.9;
+    color:#3d2f1f; white-space:pre-wrap;
+  }
+
+  /* 中文信页 */
+  .letter-cn-wrap {
+    flex:1; display:flex; flex-direction:column; align-items:center;
+    padding:10px 0; overflow:hidden;
+  }
+  .letter-cn-paper {
+    position:relative; width:100%; flex:1; background:#faf3dd;
+    border:1px solid #c9b280; padding:20px 16px; overflow-y:auto;
+  }
+  .letter-cn-content {
+    writing-mode:vertical-rl; text-orientation:upright;
+    font-family:'KaiTi','STKaiti','楷体',serif; font-size:16px;
+    line-height:2; color:#2a1a0a; height:100%;
+  }
+  .letter-cn-content .lt-title {
+    font-size:20px; font-weight:700; color:#a8322d; margin-left:12px;
+  }
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
@@ -665,6 +758,78 @@
     </div>
   </section>
 
+
+  <!-- ===== 结果：中文信封 ===== -->
+  <section class="view" id="view-result-env-cn">
+    <div class="result-header">
+      <div class="result-title">中文信封 · Chinese Envelope</div>
+      <button class="translate-btn" onclick="toggleModal('modalEnvEn')">译 · EN</button>
+    </div>
+    <div class="env-cn-wrap">
+      <div class="env-cn-box">
+        <img src="assets/envelope-cn.png" alt="侨批信封">
+        <div class="env-cn-overlay">
+          <div class="env-cn-text env-cn-to" id="resEnvTo">收批人</div>
+          <div class="env-cn-text env-cn-addr" id="resEnvAddr">地址</div>
+          <div class="env-cn-text env-cn-from" id="resEnvFrom">寄批人</div>
+        </div>
+      </div>
+    </div>
+    <button class="btn" onclick="goResultLetter()">下一步 · Next</button>
+  </section>
+
+  <!-- ===== 结果：中文信 ===== -->
+  <section class="view" id="view-result-letter-cn">
+    <div class="result-header">
+      <div class="result-title">中文家书 · Chinese Letter</div>
+      <button class="translate-btn" onclick="toggleModal('modalLetterEn')">译 · EN</button>
+    </div>
+    <div class="letter-cn-wrap">
+      <div class="letter-cn-paper" id="letterCnPaper">
+        <div class="letter-cn-content" id="letterCnContent"></div>
+        <div class="decor-layer" id="decorLayer2"></div>
+      </div>
+    </div>
+    <div style="display:flex; gap:10px; margin-top:12px;">
+      <button class="btn ghost" style="margin-top:0; flex:1;" onclick="toggleDecor2(true)">装饰 · Decorate</button>
+      <button class="btn" style="margin-top:0; flex:1;" onclick="saveBoth()">保存 · Save</button>
+    </div>
+
+    <!-- 装饰面板2 -->
+    <div class="decor-panel" id="decorPanel2">
+      <div class="panel-title">
+        <span>装饰这封家书 · Decorate</span>
+        <span class="panel-close" onclick="toggleDecor2(false)">×</span>
+      </div>
+      <div style="font-size:11px; color:#6b4423; margin-bottom:8px; line-height:1.6;">
+        按住印章或贴纸，拖到信纸上的任意位置。<br>
+        Press and hold a seal or sticker, then drag it onto the letter.
+      </div>
+      <div class="group-label">· 印 章 · Seals ·</div>
+      <div class="decor-items" id="sealItems2"></div>
+      <div class="group-label">· 贴 纸 · Stickers ·</div>
+      <div class="decor-items" id="stickerItems2"></div>
+    </div>
+  </section>
+
+  <!-- ===== 模态框：英文信封 ===== -->
+  <div class="modal-overlay" id="modalEnvEn" onclick="if(event.target===this)toggleModal('modalEnvEn')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="toggleModal('modalEnvEn')">×</button>
+      <div class="modal-title">英文信封 · English Envelope</div>
+      <div class="modal-envelope" id="modalEnvEnContent"></div>
+    </div>
+  </div>
+
+  <!-- ===== 模态框：英文信 ===== -->
+  <div class="modal-overlay" id="modalLetterEn" onclick="if(event.target===this)toggleModal('modalLetterEn')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="toggleModal('modalLetterEn')">×</button>
+      <div class="modal-title">英文原信 · English Original</div>
+      <div class="modal-letter" id="modalLetterEnContent"></div>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 </div>
 
@@ -747,7 +912,8 @@
       '收件人：' + (state.toName||'—') + '<br>' +
       '寄往：' + (state.toPlace||'—');
 
-    go('letter-compare');
+    renderResultEnvelope();
+    go('result-env-cn');
   }
 
   async function saveImage() {
@@ -793,6 +959,156 @@
     } catch (err) {
       alert('保存失败：' + err.message);
     }
+  }
+
+
+  // ============ 结果展示页 ============
+  function toggleModal(id) {
+    const m = document.getElementById(id);
+    m.classList.toggle('active');
+  }
+
+  function renderResultEnvelope() {
+    // 中文信封信息
+    document.getElementById('resEnvTo').textContent = state.toName || '收批人';
+    document.getElementById('resEnvAddr').textContent = state.toPlace || '';
+    document.getElementById('resEnvFrom').textContent = (state.fromName || '') + (state.fromPlace ? '  ' + state.fromPlace : '');
+
+    // 英文信封模态框
+    document.getElementById('modalEnvEnContent').innerHTML =
+      '<div class="env-label">FROM</div>' +
+      (state.fromName || '—') + '<br>' +
+      (state.fromPlace || '') + '<br><br>' +
+      '<div class="env-label">TO</div>' +
+      (state.toName || '—') + '<br>' +
+      (state.toPlace || '');
+
+    // 英文信模态框
+    document.getElementById('modalLetterEnContent').textContent = state.en || '';
+  }
+
+  function goResultLetter() {
+    // 渲染中文信
+    const r = state.writeResult || state.scanResult || {};
+    const classical = r.classical || r.cn || '';
+    document.getElementById('letterCnContent').innerHTML =
+      '<span class="lt-title">侨批</span>' + classical;
+    // 清空装饰
+    document.getElementById('decorLayer2').innerHTML = '';
+    go('result-letter-cn');
+  }
+
+  // 装饰面板2（中文信页用）
+  function toggleDecor2(show) {
+    document.getElementById('decorPanel2').classList.toggle('active', show);
+  }
+
+  function buildDecorItems2() {
+    const sealBox = document.getElementById('sealItems2');
+    sealBox.innerHTML = '';
+    SEALS.forEach(s => {
+      const div = document.createElement('div');
+      div.className = 'decor-item';
+      div.innerHTML = '<div class="seal ' + s.cls + '">' + s.text + '</div><div class="hint">' + s.label + '</div>';
+      div.addEventListener('pointerdown', e => startDragFromPanel2(e, s));
+      sealBox.appendChild(div);
+    });
+    const stickerBox = document.getElementById('stickerItems2');
+    stickerBox.innerHTML = '';
+    STICKERS.forEach(s => {
+      const div = document.createElement('div');
+      div.className = 'decor-item';
+      div.innerHTML = '<div class="' + s.cls + '">' + s.text + '</div><div class="hint">' + s.label + '</div>';
+      div.addEventListener('pointerdown', e => startDragFromPanel2(e, s));
+      stickerBox.appendChild(div);
+    });
+  }
+
+  function startDragFromPanel2(e, item) {
+    e.preventDefault();
+    const paper = document.getElementById('letterCnPaper');
+    const rect = paper.getBoundingClientRect();
+    const el = document.createElement('div');
+    el.className = item.type === 'seal' ? 'seal ' + item.cls : item.cls;
+    el.textContent = item.text;
+    el.style.position = 'absolute';
+    el.style.left = (e.clientX - rect.left - 30) + 'px';
+    el.style.top = (e.clientY - rect.top - 30) + 'px';
+    el.style.zIndex = '10';
+    el.style.cursor = 'grab';
+    paper.appendChild(el);
+
+    let dragging = true;
+    function move(ev) {
+      if (!dragging) return;
+      el.style.left = (ev.clientX - rect.left - 30) + 'px';
+      el.style.top = (ev.clientY - rect.top - 30) + 'px';
+    }
+    function up() {
+      dragging = false;
+      document.removeEventListener('pointermove', move);
+      document.removeEventListener('pointerup', up);
+    }
+    // 允许再次拖动已放置的元素
+    el.addEventListener('pointerdown', function(ev) {
+      ev.stopPropagation();
+      dragging = true;
+      document.addEventListener('pointermove', move);
+      document.addEventListener('pointerup', up);
+    });
+    document.addEventListener('pointermove', move);
+    document.addEventListener('pointerup', up);
+    toggleDecor2(false);
+  }
+
+  // 保存中文信封 + 英文信封（两张图）
+  async function saveBoth() {
+    toast('正在生成图片...');
+    try {
+      // 1. 保存中文信封
+      const envBox = document.querySelector('.env-cn-box');
+      if (envBox && window.html2canvas) {
+        const canvas1 = await html2canvas(envBox, { backgroundColor: null, scale: 2, useCORS: true, logging: false });
+        downloadCanvas(canvas1, '侨批信封_ChineseEnvelope.png');
+      }
+
+      // 2. 保存中文信（含装饰）
+      const paper = document.getElementById('letterCnPaper');
+      if (paper && window.html2canvas) {
+        const canvas2 = await html2canvas(paper, { backgroundColor: '#faf3dd', scale: 2, useCORS: true, logging: false });
+        downloadCanvas(canvas2, '侨批家书_ChineseLetter.png');
+      }
+
+      toast('两张图片已保存 · Saved');
+    } catch (err) {
+      alert('保存失败：' + err.message);
+    }
+  }
+
+  function downloadCanvas(canvas, filename) {
+    const isDesktop = !('ontouchstart' in window) || window.matchMedia('(pointer: fine)').matches;
+    if (isDesktop && window.showSaveFilePicker) {
+      canvas.toBlob(async function(blob) {
+        try {
+          const handle = await window.showSaveFilePicker({
+            suggestedName: filename,
+            types: [{ description: 'PNG Image', accept: { 'image/png': ['.png'] } }]
+          });
+          const writable = await handle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+        } catch(e) { if (e.name !== 'AbortError') fallbackDownload(canvas, filename); }
+      }, 'image/png');
+    } else {
+      fallbackDownload(canvas, filename);
+    }
+  }
+
+  function fallbackDownload(canvas, filename) {
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
   }
 
   function resetAll() {
@@ -913,7 +1229,8 @@
 
     if (state.scanStatus === "done") {
       renderScanResult();
-      go("letter-compare");
+      renderResultEnvelope();
+      go("result-env-cn");
     } else if (state.scanStatus === "error") {
       toast("翻译失败，请返回重选图片");
     } else {
@@ -927,7 +1244,8 @@
   function waitForScan() {
     if (state.scanStatus === "done") {
       renderScanResult();
-      go("letter-compare");
+      renderResultEnvelope();
+      go("result-env-cn");
     } else if (state.scanStatus === "error") {
       alert("翻译失败：" + (state.scanError || "未知错误"));
       go("scan-envelope");
@@ -1087,7 +1405,7 @@
     dragState = null;
   });
 
-  buildDecorItems();
+  buildDecorItems(); buildDecorItems2();
 
   let toastTimer;
   function toast(msg) {
@@ -1121,5 +1439,6 @@
 </script>
 </body>
 </html>
+
 
 
