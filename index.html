@@ -668,7 +668,7 @@
 </div>
 
 <script>
-  const state = { en:'', fromName:'', fromPlace:'', toName:'', toPlace:'', scanStatus:'idle', scanResult:null };
+  const state = { en:'', fromName:'', fromPlace:'', toName:'', toPlace:'', scanStatus:'idle', scanResult:null, writeResult:null };
 
   function go(name) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -700,21 +700,39 @@
     return samples[2];
   }
 
-  function finishWrite() {
+  async function finishWrite() {
     state.en = document.getElementById('enLetter').value.trim();
     if (!state.en) { toast('请先写下几句心里话'); return; }
     go('loading');
-    setTimeout(renderResult, 2000);
+    try {
+      const fullPrompt = "以下是一封英文家书的原文，请完成以下两步，严格按格式输出，不要加任何其他解释：\n\n【中文翻译】\n（通顺的中文翻译）\n\n【文白结合】\n（仿清末民初侨批风格的文白夹杂家书，称谓用'母亲大人膝下'或'父亲大人膝下'，语气恭敬恳切，保留原文意思）\n\n英文原文如下：\n" + state.en;
+
+      const raw = await callModel([{ role: "user", content: fullPrompt }]);
+
+      function extractSection(text, marker) {
+        const re = new RegExp("【" + marker + "】([\\s\\S]*?)(?=【|$)");
+        const m = text.match(re);
+        return m ? m[1].trim() : "";
+      }
+      const cn = extractSection(raw, "中文翻译");
+      const classical = extractSection(raw, "文白结合");
+      state.writeResult = { cn: cn, classical: classical };
+      renderResult();
+    } catch (err) {
+      alert("翻译失败：" + err.message + "\n请检查网络连接后重试。");
+      go('letter-en');
+    }
   }
 
   function renderResult() {
-    const cn = pickChinese(state.en);
+    const r = state.writeResult || {};
+    const classical = r.classical || r.cn || "";
     // 中文竖排信件（装饰页用）
-    document.getElementById('cnLetter').innerHTML = '<span class="lt">' + cn.title + '</span>' + cn.body;
+    document.getElementById('cnLetter').innerHTML = '<span class="lt">侨批</span>' + classical;
 
     // 信件对照页
     document.getElementById('cmpEnLetter2').textContent = state.en;
-    document.getElementById('cmpCnLetter2').textContent = cn.title + '\n' + cn.body;
+    document.getElementById('cmpCnLetter2').textContent = classical;
 
     // 信封对照页
     document.getElementById('cmpEnEnv2').innerHTML =
