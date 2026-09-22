@@ -219,6 +219,7 @@
     font-size:13px; color:#6b4423; margin-top:6px; letter-spacing:1px;
   }
   @keyframes pulse { 0%,100%{opacity:.5;} 50%{opacity:1;} }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
   /* ============ 中文信件 ============ */
   #view-letter-cn { padding:20px 20px 24px; }
@@ -371,7 +372,46 @@
     padding:10px 20px; border-radius:20px; font-size:13px;
     opacity:0; transition: opacity .3s; pointer-events:none; z-index:99;
   }
-  .toast.show { opacity:1; }
+
+  /* ============ 拍照识别 ============ */
+  .scan-upload {
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; gap:16px;
+  }
+  .scan-upload .icon-box {
+    width:80px; height:80px; border:2px dashed #6b4423; border-radius:12px;
+    display:flex; align-items:center; justify-content:center; font-size:36px; color:#6b4423;
+  }
+  .scan-upload .hint-text { font-size:14px; color:#3d2f1f; line-height:1.8; }
+  .scan-upload .hint-en { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:12px; color:#6b4423; }
+  .scan-btns { display:flex; gap:12px; width:100%; margin-top:8px; }
+  .scan-btns .btn { margin-top:0; flex:1; padding:14px; font-size:14px; letter-spacing:2px; }
+  .scan-preview {
+    flex:1; display:flex; flex-direction:column; gap:12px;
+  }
+  .scan-preview img {
+    width:100%; max-height:280px; object-fit:contain; border:1px solid #c9b280; border-radius:4px;
+    background:#faf3dd;
+  }
+  .scan-result-box {
+    background:#faf3dd; border:1px solid #c9b280; padding:12px;
+    max-height:160px; overflow-y:auto; font-size:13px; line-height:1.8;
+  }
+  .scan-result-label {
+    font-size:11px; letter-spacing:2px; color:#a8322d; margin-bottom:4px;
+    font-family:'Cormorant Garamond',serif;
+  }
+  .scan-loading {
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; gap:16px;
+  }
+  .scan-step {
+    font-size:13px; color:#3d2f1f; line-height:2;
+  }
+  .scan-step .done { color:#2b7a57; }
+  .scan-step .doing { color:#a8322d; font-weight:700; }
+  .scan-step .wait { color:#a89878; }
+
 </style>
 </head>
 <body>
@@ -390,6 +430,7 @@
       <span style="font-family:'Cormorant Garamond',serif; font-style:italic; color:#6b4423; font-size:12px;">Hundreds of years ago, Chinese emigrants sealed their longing and savings into "Qiaopi" — letters that crossed the sea to reach home. Now it's your turn to write.</span>
     </p>
     <button class="btn" onclick="go('envelope-en')">开始书写 · Start</button>
+    <button class="btn ghost" style="margin-top:12px; box-shadow:none;" onclick="go('scan')">拍照识别 · Scan Letter</button>
   </section>
 
   <!-- ===== 2. 英文信封 ===== -->
@@ -455,6 +496,77 @@
     <div class="loading-text">侨批正在译回家乡</div>
     <div class="loading-sub">Translating your letter...</div>
     <div class="loading-dots" style="margin-top:16px;"><span></span><span></span><span></span></div>
+  </section>
+
+  <!-- ===== 拍照识别 ===== -->
+  <section class="view" id="view-scan">
+    <div class="back-link" onclick="go('welcome')">← 返回 · Back</div>
+    <div class="page-head">
+      <div class="page-step">Scan · 拍照识别</div>
+      <div class="page-title">识别家书 · OCR</div>
+      <div class="page-hint">拍摄或上传一封英文家书，自动识别并翻译为文白结合的中文侨批。<br>Snap or upload an English letter — auto OCR + translate to classical Chinese.</div>
+    </div>
+
+    <!-- 上传选择 -->
+    <div class="scan-upload" id="scanUpload">
+      <div class="icon-box">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6b4423" stroke-width="1.5">
+          <rect x="3" y="5" width="18" height="14" rx="2"/>
+          <circle cx="12" cy="12" r="3.5"/>
+          <path d="M8 5l1.5-2h5L16 5"/>
+        </svg>
+      </div>
+      <div class="hint-text">选择一张英文家书图片<br><span class="hint-en">Choose an image of an English letter</span></div>
+      <div class="scan-btns">
+        <button class="btn" onclick="document.getElementById('scanCamera').click()">拍照 · Camera</button>
+        <button class="btn ghost" onclick="document.getElementById('scanFile').click()">相册 · Gallery</button>
+      </div>
+      <input type="file" id="scanCamera" accept="image/*" capture="environment" style="display:none;" onchange="handleScanFile(this)">
+      <input type="file" id="scanFile" accept="image/*" style="display:none;" onchange="handleScanFile(this)">
+    </div>
+
+    <!-- 预览确认 -->
+    <div class="scan-preview" id="scanPreview" style="display:none;">
+      <img id="scanImg" alt="preview">
+      <div>
+        <div class="scan-result-label">识别到的英文 · OCR Result</div>
+        <div class="scan-result-box" id="scanOcrText" style="min-height:60px;">等待识别...</div>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button class="btn ghost" style="margin-top:0; flex:1;" onclick="resetScan()">重选 · Retake</button>
+        <button class="btn" style="margin-top:0; flex:1;" onclick="startScanTranslate()">开始翻译 · Translate</button>
+      </div>
+    </div>
+
+    <!-- 加载中 -->
+    <div class="scan-loading" id="scanLoading" style="display:none;">
+      <div style="width:60px; height:60px; border:3px solid #c9b280; border-top-color:#a8322d; border-radius:50%; animation: spin 1s linear infinite;"></div>
+      <div class="scan-step" id="scanSteps">
+        <div class="wait" id="step1">① 识别图片英文 · OCR</div>
+        <div class="wait" id="step2">② 翻译为中文 · Translate</div>
+        <div class="wait" id="step3">③ 改写为文白结合 · Classical</div>
+      </div>
+    </div>
+
+    <!-- 结果 -->
+    <div class="scan-preview" id="scanResult" style="display:none;">
+      <div>
+        <div class="scan-result-label">英文原文 · English Original</div>
+        <div class="scan-result-box" id="resEn"></div>
+      </div>
+      <div>
+        <div class="scan-result-label">中文翻译 · Chinese</div>
+        <div class="scan-result-box" id="resCn"></div>
+      </div>
+      <div>
+        <div class="scan-result-label">文白结合 · Classical Chinese</div>
+        <div class="scan-result-box" id="resClassical" style="max-height:200px;"></div>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button class="btn ghost" style="margin-top:0; flex:1;" onclick="resetScan()">再识别一张 · Again</button>
+        <button class="btn" style="margin-top:0; flex:1;" onclick="go('welcome')">完成 · Done</button>
+      </div>
+    </div>
   </section>
 
   <!-- ===== 5. 信件对照（点屏幕继续） ===== -->
@@ -640,6 +752,105 @@
     { type:'sticker', cls:'sticker sticker-small', text:'父安', label:'父安 Father' },
     { type:'sticker', cls:'sticker sticker-small', text:'母安', label:'母安 Mother' },
   ];
+
+
+  // ============ 拍照识别 ============
+  const SCAN_API = "http://127.0.0.1:23333/v1/chat/completions";
+  const SCAN_KEY = "cs-sk-d464868b-38f4-4ecc-a549-e563fc728cde";
+  const SCAN_MODEL = "glm5.3-flash";
+  let scanImageB64 = "";
+  let scanOcrText = "";
+
+  async function callModel(messages) {
+    const resp = await fetch(SCAN_API, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + SCAN_KEY
+      },
+      body: JSON.stringify({ model: SCAN_MODEL, messages: messages, temperature: 0.3 })
+    });
+    if (!resp.ok) throw new Error("API error " + resp.status);
+    const data = await resp.json();
+    return data.choices[0].message.content.trim();
+  }
+
+  function handleScanFile(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      scanImageB64 = e.target.result;
+      document.getElementById("scanImg").src = scanImageB64;
+      document.getElementById("scanUpload").style.display = "none";
+      document.getElementById("scanPreview").style.display = "flex";
+      document.getElementById("scanOcrText").textContent = "点击下方「开始翻译」进行识别...";
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function setStep(id, state) {
+    const el = document.getElementById(id);
+    el.className = state;
+    if (state === "done") el.textContent = el.textContent.replace(/^./, "✓");
+  }
+
+  async function startScanTranslate() {
+    document.getElementById("scanPreview").style.display = "none";
+    document.getElementById("scanLoading").style.display = "flex";
+    ["step1","step2","step3"].forEach(id => document.getElementById(id).className = "wait");
+
+    try {
+      // Step 1: OCR
+      setStep("step1", "doing");
+      scanOcrText = await callModel([
+        { role: "user", content: [
+          { type: "text", text: "请识别这张图片中的所有英文文字。只输出识别到的英文原文，不要加任何解释、标点或前缀。" },
+          { type: "image_url", image_url: { url: scanImageB64 } }
+        ]}
+      ]);
+      setStep("step1", "done");
+      document.getElementById("scanOcrText").textContent = scanOcrText;
+
+      // Step 2: 翻译中文
+      setStep("step2", "doing");
+      const cnText = await callModel([
+        { role: "user", content: "把以下英文翻译成通顺的中文，只输出译文，不要加解释：\n\n" + scanOcrText }
+      ]);
+      setStep("step2", "done");
+
+      // Step 3: 文白结合
+      setStep("step3", "doing");
+      const classical = await callModel([
+        { role: "user", content: "把以下中文改写成仿清末民初侨批风格的文白夹杂家书。称谓用'父亲大人膝下'或'母亲大人膝下'一类，语气恭敬恳切，保留原文意思，只输出改写后的家书正文，不要加解释：\n\n" + cnText }
+      ]);
+      setStep("step3", "done");
+
+      // 展示结果
+      document.getElementById("resEn").textContent = scanOcrText;
+      document.getElementById("resCn").textContent = cnText;
+      document.getElementById("resClassical").textContent = classical;
+      document.getElementById("scanLoading").style.display = "none";
+      document.getElementById("scanResult").style.display = "flex";
+
+    } catch (err) {
+      alert("识别失败：" + err.message + "\n\n请确认本地 API 服务已启动（http://127.0.0.1:23333），且页面在本地打开（非 GitHub Pages）。");
+      document.getElementById("scanLoading").style.display = "none";
+      document.getElementById("scanPreview").style.display = "flex";
+    }
+  }
+
+  function resetScan() {
+    document.getElementById("scanResult").style.display = "none";
+    document.getElementById("scanPreview").style.display = "none";
+    document.getElementById("scanLoading").style.display = "none";
+    document.getElementById("scanUpload").style.display = "flex";
+    document.getElementById("scanCamera").value = "";
+    document.getElementById("scanFile").value = "";
+    scanImageB64 = "";
+    scanOcrText = "";
+  }
+
 
   function buildDecorItems() {
     const sealBox = document.getElementById('sealItems');
