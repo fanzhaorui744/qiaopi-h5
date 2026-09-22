@@ -419,6 +419,7 @@
   .scan-step .wait { color:#a89878; }
 
 </style>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
 <body>
 
@@ -641,7 +642,7 @@
       <div class="decor-layer" id="decorLayer"></div>
     </div>
     <div class="cn-actions">
-      <button class="btn ghost" onclick="toast('原型演示：保存图片功能将在正式版实现')">保存 · Save</button>
+      <button class="btn ghost" onclick="saveImage()">保存 · Save</button>
       <button class="btn" onclick="resetAll()">再写一封 · Again</button>
     </div>
 
@@ -747,6 +748,27 @@
       '寄往：' + (state.toPlace||'—');
 
     go('letter-compare');
+  }
+
+  async function saveImage() {
+    const paper = document.getElementById('cnPaper');
+    if (!paper) { toast('找不到信件内容'); return; }
+    toast('正在生成图片...');
+    try {
+      const canvas = await html2canvas(paper, {
+        backgroundColor: '#faf3dd',
+        scale: 2,
+        useCORS: true,
+        logging: false
+      });
+      const link = document.createElement('a');
+      link.download = '侨批_Qiaopi_' + Date.now() + '.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      toast('图片已保存 · Saved');
+    } catch (err) {
+      alert('保存失败：' + err.message);
+    }
   }
 
   function resetAll() {
