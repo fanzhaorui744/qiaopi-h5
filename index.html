@@ -789,52 +789,43 @@
     reader.readAsDataURL(file);
   }
 
-  function setStep(id, state) {
-    const el = document.getElementById(id);
-    el.className = state;
-    if (state === "done") el.textContent = el.textContent.replace(/^./, "✓");
-  }
-
   async function startScanTranslate() {
     document.getElementById("scanPreview").style.display = "none";
     document.getElementById("scanLoading").style.display = "flex";
-    ["step1","step2","step3"].forEach(id => document.getElementById(id).className = "wait");
+    document.getElementById("scanSteps").innerHTML = '<div class="doing">正在识别并翻译 · Recognizing & Translating...</div>';
 
     try {
-      // Step 1: OCR
-      setStep("step1", "doing");
-      scanOcrText = await callModel([
+      const fullPrompt = "请识别这张图片中的英文文字，然后完成以下三步，严格按格式输出，不要加任何其他解释：\n\n【英文原文】\n（识别到的英文原文，逐行保留）\n\n【中文翻译】\n（通顺的中文翻译）\n\n【文白结合】\n（仿清末民初侨批风格的文白夹杂家书，称谓用'母亲大人膝下'或'父亲大人膝下'，语气恭敬恳切，保留原文意思）";
+
+      const raw = await callModel([
         { role: "user", content: [
-          { type: "text", text: "请识别这张图片中的所有英文文字。只输出识别到的英文原文，不要加任何解释、标点或前缀。" },
+          { type: "text", text: fullPrompt },
           { type: "image_url", image_url: { url: scanImageB64 } }
         ]}
       ]);
-      setStep("step1", "done");
-      document.getElementById("scanOcrText").textContent = scanOcrText;
 
-      // Step 2: 翻译中文
-      setStep("step2", "doing");
-      const cnText = await callModel([
-        { role: "user", content: "把以下英文翻译成通顺的中文，只输出译文，不要加解释：\n\n" + scanOcrText }
-      ]);
-      setStep("step2", "done");
+      // 解析三段
+      function extractSection(text, marker) {
+        const re = new RegExp("【" + marker + "】([\\s\\S]*?)(?=【|$)");
+        const m = text.match(re);
+        return m ? m[1].trim() : "";
+      }
+      const enText = extractSection(raw, "英文原文") || raw;
+      const cnText = extractSection(raw, "中文翻译");
+      const classical = extractSection(raw, "文白结合");
 
-      // Step 3: 文白结合
-      setStep("step3", "doing");
-      const classical = await callModel([
-        { role: "user", content: "把以下中文改写成仿清末民初侨批风格的文白夹杂家书。称谓用'父亲大人膝下'或'母亲大人膝下'一类，语气恭敬恳切，保留原文意思，只输出改写后的家书正文，不要加解释：\n\n" + cnText }
-      ]);
-      setStep("step3", "done");
+      scanOcrText = enText;
+      document.getElementById("scanOcrText").textContent = enText;
 
       // 展示结果
-      document.getElementById("resEn").textContent = scanOcrText;
-      document.getElementById("resCn").textContent = cnText;
-      document.getElementById("resClassical").textContent = classical;
+      document.getElementById("resEn").textContent = enText;
+      document.getElementById("resCn").textContent = cnText || "（解析失败，原始输出见英文原文）";
+      document.getElementById("resClassical").textContent = classical || "（解析失败）";
       document.getElementById("scanLoading").style.display = "none";
       document.getElementById("scanResult").style.display = "flex";
 
     } catch (err) {
-      alert("识别失败：" + err.message + "\n\n请确认本地 API 服务已启动（http://127.0.0.1:23333），且页面在本地打开（非 GitHub Pages）。");
+      alert("识别失败：" + err.message);
       document.getElementById("scanLoading").style.display = "none";
       document.getElementById("scanPreview").style.display = "flex";
     }
