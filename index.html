@@ -761,8 +761,32 @@
         useCORS: true,
         logging: false
       });
+      const filename = '侨批_Qiaopi_' + Date.now() + '.png';
+
+      // 桌面端：用 File System Access API 弹出保存对话框，可选文件夹
+      const isDesktop = !('ontouchstart' in window) || window.matchMedia('(pointer: fine)').matches;
+      if (isDesktop && window.showSaveFilePicker) {
+        try {
+          const handle = await window.showSaveFilePicker({
+            suggestedName: filename,
+            types: [{ description: 'PNG Image', accept: { 'image/png': ['.png'] } }]
+          });
+          const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+          const writable = await handle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+          toast('已保存到所选文件夹 · Saved');
+          return;
+        } catch (e) {
+          // 用户取消了保存对话框，不报错
+          if (e.name === 'AbortError') return;
+          // 其他错误回退到普通下载
+        }
+      }
+
+      // 手机端或不支持时：普通下载（手机会保存到相册/下载）
       const link = document.createElement('a');
-      link.download = '侨批_Qiaopi_' + Date.now() + '.png';
+      link.download = filename;
       link.href = canvas.toDataURL('image/png');
       link.click();
       toast('图片已保存 · Saved');
