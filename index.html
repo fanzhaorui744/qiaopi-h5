@@ -397,6 +397,12 @@
     background:#faf3dd; border:1px solid #c9b280; padding:12px;
     max-height:160px; overflow-y:auto; font-size:13px; line-height:1.8;
   }
+  .scan-edit-box {
+    width:100%; min-height:120px; background:#faf3dd; border:1px solid #c9b280;
+    padding:12px; font-size:13px; line-height:1.8; font-family:inherit;
+    color:#3d2f1f; resize:vertical; border-radius:4px; outline:none;
+  }
+  .scan-edit-box:focus { border-color:#a8322d; }
   .scan-result-label {
     font-size:11px; letter-spacing:2px; color:#a8322d; margin-bottom:4px;
     font-family:'Cormorant Garamond',serif;
@@ -529,12 +535,12 @@
     <div class="scan-preview" id="scanPreview" style="display:none;">
       <img id="scanImg" alt="preview">
       <div>
-        <div class="scan-result-label">识别到的英文 · OCR Result</div>
-        <div class="scan-result-box" id="scanOcrText" style="min-height:60px;">等待识别...</div>
+        <div class="scan-result-label">识别到的英文（可修改）· OCR Result (editable)</div>
+        <textarea id="scanOcrText" class="scan-edit-box" placeholder="识别结果将显示在这里，你可以修改..."></textarea>
       </div>
       <div style="display:flex; gap:10px;">
         <button class="btn ghost" style="margin-top:0; flex:1;" onclick="resetScan()">重选 · Retake</button>
-        <button class="btn" style="margin-top:0; flex:1;" onclick="startScanTranslate()">开始翻译 · Translate</button>
+        <button class="btn" style="margin-top:0; flex:1;" id="scanGenBtn" onclick="generateFinal()">生成侨批 · Generate</button>
       </div>
     </div>
 
@@ -755,7 +761,7 @@
 
 
   // ============ 拍照识别 ============
-  const SCAN_API = "https://vulcanapi.com/v1/chat/completions";
+  const SCAN_API = "https://qiaopi-proxy.fanzhaorui744.workers.dev/";
   const SCAN_KEY = "sk-3ac616faf0042bf59f89f97b3aca507bf176c8e544796fd1f4fc50f39f4b5829";
   const SCAN_MODEL = "glm-5.3-flash";
   let scanImageB64 = "";
@@ -784,48 +790,69 @@
       document.getElementById("scanImg").src = scanImageB64;
       document.getElementById("scanUpload").style.display = "none";
       document.getElementById("scanPreview").style.display = "flex";
-      document.getElementById("scanOcrText").textContent = "点击下方「开始翻译」进行识别...";
+      document.getElementById("scanOcrText").value = "";
     };
     reader.readAsDataURL(file);
   }
 
+  // 第一步：只做 OCR，识别英文，填入可编辑框
   async function startScanTranslate() {
     document.getElementById("scanPreview").style.display = "none";
     document.getElementById("scanLoading").style.display = "flex";
-    document.getElementById("scanSteps").innerHTML = '<div class="doing">正在识别并翻译 · Recognizing & Translating...</div>';
+    document.getElementById("scanSteps").innerHTML = '<div class="doing">正在识别图片文字 · Recognizing text...</div>';
 
     try {
-      const fullPrompt = "请识别这张图片中的英文文字，然后完成以下三步，严格按格式输出，不要加任何其他解释：\n\n【英文原文】\n（识别到的英文原文，逐行保留）\n\n【中文翻译】\n（通顺的中文翻译）\n\n【文白结合】\n（仿清末民初侨批风格的文白夹杂家书，称谓用'母亲大人膝下'或'父亲大人膝下'，语气恭敬恳切，保留原文意思）";
-
-      const raw = await callModel([
+      const ocrText = await callModel([
         { role: "user", content: [
-          { type: "text", text: fullPrompt },
+          { type: "text", text: "请识别这张图片中的所有英文文字，逐行保留原文格式。只输出识别到的英文原文，不要加任何解释、标点或前缀。" },
           { type: "image_url", image_url: { url: scanImageB64 } }
         ]}
       ]);
 
-      // 解析三段
+      scanOcrText = ocrText;
+      document.getElementById("scanOcrText").value = ocrText;
+      document.getElementById("scanLoading").style.display = "none";
+      document.getElementById("scanPreview").style.display = "flex";
+
+    } catch (err) {
+      alert("识别失败：" + err.message);
+      document.getElementById("scanLoading").style.display = "none";
+      document.getElementById("scanPreview").style.display = "flex";
+    }
+  }
+
+  // 第二步：用户确认英文后，生成翻译+文白结合
+  async function generateFinal() {
+    const enText = document.getElementById("scanOcrText").value.trim();
+    if (!enText) { alert("请先识别或输入英文内容"); return; }
+
+    document.getElementById("scanPreview").style.display = "none";
+    document.getElementById("scanLoading").style.display = "flex";
+    document.getElementById("scanSteps").innerHTML = '<div class="doing">正在翻译并生成侨批 · Translating & Generating...</div>';
+
+    try {
+      const fullPrompt = "以下是一封英文家书的原文，请完成以下两步，严格按格式输出，不要加任何其他解释：\n\n【中文翻译】\n（通顺的中文翻译）\n\n【文白结合】\n（仿清末民初侨批风格的文白夹杂家书，称谓用'母亲大人膝下'或'父亲大人膝下'，语气恭敬恳切，保留原文意思）\n\n英文原文如下：\n" + enText;
+
+      const raw = await callModel([
+        { role: "user", content: fullPrompt }
+      ]);
+
       function extractSection(text, marker) {
         const re = new RegExp("【" + marker + "】([\\s\\S]*?)(?=【|$)");
         const m = text.match(re);
         return m ? m[1].trim() : "";
       }
-      const enText = extractSection(raw, "英文原文") || raw;
       const cnText = extractSection(raw, "中文翻译");
       const classical = extractSection(raw, "文白结合");
 
-      scanOcrText = enText;
-      document.getElementById("scanOcrText").textContent = enText;
-
-      // 展示结果
       document.getElementById("resEn").textContent = enText;
-      document.getElementById("resCn").textContent = cnText || "（解析失败，原始输出见英文原文）";
+      document.getElementById("resCn").textContent = cnText || "（解析失败）";
       document.getElementById("resClassical").textContent = classical || "（解析失败）";
       document.getElementById("scanLoading").style.display = "none";
       document.getElementById("scanResult").style.display = "flex";
 
     } catch (err) {
-      alert("识别失败：" + err.message);
+      alert("生成失败：" + err.message);
       document.getElementById("scanLoading").style.display = "none";
       document.getElementById("scanPreview").style.display = "flex";
     }
@@ -995,4 +1022,5 @@
 </script>
 </body>
 </html>
+
 
