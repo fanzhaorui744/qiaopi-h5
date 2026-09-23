@@ -1404,26 +1404,36 @@
     throw lastErr;
   }
 
-  // 压缩图片：最大宽度 1280，JPEG 质量 0.7
+  // 压缩图片：最大宽度 1280，JPEG 质量 0.7；失败时回退原图
   function compressImage(file) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = function(e) {
-        const img = new Image();
+        const original = e.target.result;
+        let img;
+        try { img = new Image(); } catch (err) { resolve(original); return; }
         img.onload = function() {
-          const MAX_W = 1280;
-          let w = img.width, h = img.height;
-          if (w > MAX_W) { h = Math.round(h * MAX_W / w); w = MAX_W; }
-          const canvas = document.createElement('canvas');
-          canvas.width = w; canvas.height = h;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, w, h);
-          resolve(canvas.toDataURL('image/jpeg', 0.7));
+          try {
+            const MAX_W = 1280;
+            let w = img.width || file.width;
+            let h = img.height || file.height;
+            if (!w || !h) { resolve(original); return; }
+            if (w > MAX_W) { h = Math.round(h * MAX_W / w); w = MAX_W; }
+            const canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            const compressed = canvas.toDataURL('image/jpeg', 0.7);
+            resolve(compressed && compressed.length > 100 ? compressed : original);
+          } catch (err) { resolve(original); }
         };
-        img.onerror = reject;
-        img.src = e.target.result;
+        img.onerror = function() { resolve(original); };
+        img.src = original;
       };
-      reader.onerror = reject;
+      reader.onerror = function() {
+        // FileReader 失败，尝试直接用文件对象
+        resolve('');
+      };
       reader.readAsDataURL(file);
     });
   }
@@ -1432,15 +1442,12 @@
   async function handleScanFile(input) {
     const file = input.files[0];
     if (!file) return;
-    try {
-      scanImageB64 = await compressImage(file);
-      state.scanStatus = "processing";
-      state.scanResult = null;
-      runScanPipeline();
-      go("scan-envelope");
-    } catch (err) {
-      alert('图片处理失败：' + err.message);
-    }
+    scanImageB64 = await compressImage(file);
+    if (!scanImageB64) { alert('无法读取图片，请换一张照片 · Cannot read image'); return; }
+    state.scanStatus = "processing";
+    state.scanResult = null;
+    runScanPipeline();
+    go("scan-envelope");
   }
 
   // 示例演示：加载预设示例图片，走完整 OCR+翻译+文白结合流程
