@@ -550,6 +550,7 @@
     </p>
     <button class="btn" onclick="go('envelope-en')">开始书写 · Start</button>
     <button class="btn ghost" style="margin-top:12px; box-shadow:none;" onclick="go('scan')">拍照识别 · Scan Letter</button>
+    <button class="btn ghost" style="margin-top:12px; box-shadow:none;" onclick="runSampleDemo()">示例演示 · Try Demo</button>
   </section>
 
   <!-- ===== 2. 英文信封 ===== -->
@@ -1194,6 +1195,26 @@
       go("scan-envelope");
     };
     reader.readAsDataURL(file);
+  }
+
+  // 示例演示：加载预设示例图片，走完整 OCR+翻译+文白结合流程
+  async function runSampleDemo() {
+    try {
+      const resp = await fetch('assets/sample-letter.jpg');
+      if (!resp.ok) throw new Error('示例图片加载失败 ' + resp.status);
+      const blob = await resp.blob();
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        scanImageB64 = e.target.result;
+        state.scanStatus = "processing";
+        state.scanResult = null;
+        runScanPipeline();
+        go("scan-envelope");
+      };
+      reader.readAsDataURL(blob);
+    } catch (err) {
+      toast('示例演示失败：' + err.message);
+    }
   }
 
   // 后台完整工作流：OCR + 翻译 + 文白结合（一次调用）
