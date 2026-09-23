@@ -461,6 +461,10 @@
   .env-cn-from { left:4%; top:20%; font-size:13px; letter-spacing:2px; }
   .env-cn-money { left:12%; top:15%; font-size:14px; color:#a8322d; font-weight:700; letter-spacing:2px; }
 
+  .pm-thumb {
+    width:56px; height:56px; object-fit:contain; display:block; margin:0 auto;
+  }
+
   /* 英文信封模板 */
   .env-en-wrap {
     position:relative; width:100%; aspect-ratio:1728/1692;
@@ -828,6 +832,8 @@
       <div class="decor-items" id="sealItems2"></div>
       <div class="group-label">· 贴 纸 · Stickers ·</div>
       <div class="decor-items" id="stickerItems2"></div>
+      <div class="group-label">· 邮 戳 · Postmarks ·</div>
+      <div class="decor-items" id="postmarkItems2"></div>
     </div>
   </section>
 
@@ -1025,6 +1031,15 @@
     document.getElementById('decorPanel2').classList.toggle('active', show);
   }
 
+  const POSTMARKS = [
+    { src: "assets/pm-singapore.png", label: "Singapore", type: "postmark" },
+    { src: "assets/pm-hongkong.png", label: "Hong Kong", type: "postmark" },
+    { src: "assets/pm-shantou.png", label: "Shantou", type: "postmark" },
+    { src: "assets/pm-qiaopiju.png", label: "Qiaopi Bureau", type: "postmark" },
+    { src: "assets/pm-seal-square.png", label: "Seal", type: "postmark" },
+    { src: "assets/pm-seal-vert.png", label: "Vertical Seal", type: "postmark" },
+  ];
+
   function buildDecorItems2() {
     const sealBox = document.getElementById('sealItems2');
     sealBox.innerHTML = '';
@@ -1044,6 +1059,65 @@
       div.addEventListener('pointerdown', e => startDragFromPanel2(e, s));
       stickerBox.appendChild(div);
     });
+    const pmBox = document.getElementById('postmarkItems2');
+    pmBox.innerHTML = '';
+    POSTMARKS.forEach(p => {
+      const div = document.createElement('div');
+      div.className = 'decor-item';
+      div.innerHTML = '<img src="' + p.src + '" class="pm-thumb"><div class="hint">' + p.label + '</div>';
+      div.addEventListener('pointerdown', e => startDragPostmark2(e, p));
+      pmBox.appendChild(div);
+    });
+  }
+
+  function startDragPostmark2(e, item) {
+    e.preventDefault();
+    const paper = document.getElementById('letterCnPaper');
+    const rect = paper.getBoundingClientRect();
+    const el = document.createElement('img');
+    el.src = item.src;
+    el.style.position = 'absolute';
+    el.style.width = '90px';
+    el.style.height = 'auto';
+    el.style.left = (e.clientX - rect.left - 45) + 'px';
+    el.style.top = (e.clientY - rect.top - 45) + 'px';
+    el.style.zIndex = '10';
+    el.style.cursor = 'grab';
+    el.style.userSelect = 'none';
+    el.style.pointerEvents = 'auto';
+    paper.appendChild(el);
+
+    let dragging = true;
+    function move(ev) {
+      if (!dragging) return;
+      el.style.left = (ev.clientX - rect.left - 45) + 'px';
+      el.style.top = (ev.clientY - rect.top - 45) + 'px';
+    }
+    function up() {
+      dragging = false;
+      document.removeEventListener('pointermove', move);
+      document.removeEventListener('pointerup', up);
+    }
+    el.addEventListener('pointerdown', function(ev) {
+      ev.stopPropagation();
+      ev.preventDefault();
+      dragging = true;
+      const r = paper.getBoundingClientRect();
+      function m2(ev2) {
+        if (!dragging) return;
+        el.style.left = (ev2.clientX - r.left - 45) + 'px';
+        el.style.top = (ev2.clientY - r.top - 45) + 'px';
+      }
+      function u2() {
+        dragging = false;
+        document.removeEventListener('pointermove', m2);
+        document.removeEventListener('pointerup', u2);
+      }
+      document.addEventListener('pointermove', m2);
+      document.addEventListener('pointerup', u2);
+    });
+    document.addEventListener('pointermove', move);
+    document.addEventListener('pointerup', up);
   }
 
   function startDragFromPanel2(e, item) {
