@@ -1,0 +1,10 @@
+# 调试/临时脚本与截图
+_*.py
+_*.js
+_*.png
+_*.jpg
+_shots/
+
+# 系统
+Thumbs.db
+.DS_Store

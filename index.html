@@ -1,0 +1,1465 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>侨批 · 一封家书的旅程</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%236b4423'/%3E%3Ctext x='16' y='22' font-size='18' text-anchor='middle' fill='%23f0e2c0' font-family='serif'%3E批%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { height:100%; }
+  body {
+    font-family: 'Noto Serif SC', 'Songti SC', 'STSong', serif;
+    background: #d4b87a;
+    min-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    color:#3d2f1f;
+  }
+  .phone {
+    width:100%; max-width:640px; height:100vh; max-height:100vh;
+    background:#f0e2c0;
+    position:relative; overflow:hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+  }
+  @media (min-width: 480px) {
+    .phone { border-radius: 0; height: 100vh; max-height: 100vh; }
+  }
+  .phone::before {
+    content:''; position:absolute; inset:0; pointer-events:none; z-index:1;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(107,68,35,0.03) 0 1px, transparent 1px 3px),
+      radial-gradient(ellipse at top left, rgba(168,50,45,0.06), transparent 60%);
+    mix-blend-mode: multiply;
+  }
+  .view {
+    position:absolute; inset:0; padding:32px 28px;
+    display:none; flex-direction:column;
+    z-index:2; overflow-y:auto;
+    animation: fadeIn .5s ease;
+  }
+  .view.active { display:flex; }
+  @keyframes fadeIn { from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:none;} }
+
+  /* ============ 通用 ============ */
+  .btn {
+    display:block; width:100%; padding:16px;
+    background:#6b4423; color:#f0e2c0;
+    border:none; border-radius:2px;
+    font-family:inherit; font-size:15px; letter-spacing:4px;
+    cursor:pointer; transition: all .2s;
+    margin-top:auto;
+    box-shadow: 0 4px 0 #4a2e16;
+  }
+  .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #4a2e16; }
+  .btn.ghost { background:transparent; color:#6b4423; box-shadow:none; border:1px solid #6b4423; }
+
+  .back-link {
+    font-size:13px; color:#6b4423; cursor:pointer;
+    margin-bottom:12px; display:inline-flex; align-items:center; gap:4px;
+    font-family:'Cormorant Garamond','Noto Serif SC',serif;
+    opacity:.7; width:auto;
+  }
+  .back-link:hover { opacity:1; }
+
+  .page-head { margin-bottom:20px; }
+  .page-step {
+    font-family:'Cormorant Garamond', serif; font-size:12px;
+    letter-spacing:3px; color:#a8322d; text-transform:uppercase; margin-bottom:6px;
+  }
+  .page-title { font-size:24px; font-weight:700; letter-spacing:3px; }
+  .page-hint { font-size:12px; color:#6b4423; margin-top:6px; line-height:1.7; }
+
+  /* ============ 欢迎页 ============ */
+  #view-welcome { align-items:center; justify-content:center; text-align:center; }
+  .welcome-stamp {
+    width:110px; height:110px; border:2px solid #a8322d; border-radius:50%;
+    color:#a8322d; display:flex; align-items:center; justify-content:center;
+    font-size:14px; letter-spacing:2px; line-height:1.5;
+    transform: rotate(-12deg); margin-bottom:32px;
+    font-family: 'Cormorant Garamond', serif;
+    opacity:.85;
+  }
+  .welcome-title { font-size: 38px; font-weight:900; letter-spacing:8px; color:#3d2f1f; margin-bottom:8px; }
+  .welcome-subtitle-en {
+    font-family:'Cormorant Garamond', serif; font-style:italic;
+    font-size:18px; color:#6b4423; margin-bottom:28px; letter-spacing:1px;
+  }
+  .welcome-desc { font-size:13px; line-height:2; color:#6b4423; max-width:280px; margin-bottom:40px; }
+  .welcome-divider { width:40px; height:1px; background:#6b4423; margin: 0 auto 32px; }
+
+  /* ============ 信封（英文） ============ */
+  .envelope-visual {
+    background:#e8d5a8; border:1px solid #c9b280;
+    padding:20px; position:relative; margin-bottom:16px;
+    box-shadow: 0 6px 20px rgba(107,68,35,0.15); flex:1;
+  }
+  .envelope-visual::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:60px;
+    background: linear-gradient(180deg, #d4b87a, transparent);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+  }
+  .envelope-stamp {
+    position:absolute; top:14px; right:14px;
+    width:48px; height:60px; background:#f0e2c0;
+    border:1px dashed #a8322d; display:flex; align-items:center; justify-content:center;
+    color:#a8322d; font-size:10px; text-align:center; line-height:1.2; z-index:2;
+  }
+  .envelope-pm {
+    position:absolute; top:18px; right:70px;
+    width:54px; height:54px; border:1.5px solid #a8322d; border-radius:50%;
+    color:#a8322d; font-size:8px; text-align:center;
+    display:flex; align-items:center; justify-content:center;
+    transform:rotate(-15deg); opacity:.8; z-index:2;
+  }
+  .form-field { margin-bottom:14px; position:relative; z-index:3; }
+  .form-field label {
+    display:block; font-size:11px; letter-spacing:2px;
+    color:#6b4423; margin-bottom:4px; text-transform:uppercase;
+    font-family:'Cormorant Garamond', serif;
+  }
+  .form-field input {
+    width:100%; padding:10px 4px; border:none; border-bottom:1px solid #6b4423;
+    background:transparent; outline:none;
+    font-family:'Cormorant Garamond', 'Noto Serif SC', serif;
+    font-size:16px; color:#3d2f1f;
+  }
+  .form-field input::placeholder { color:#b5a078; font-style:italic; }
+  .form-row { display:flex; gap:12px; }
+  .form-row .form-field { flex:1; }
+
+  /* ============ 信纸（英文） ============ */
+  .letter-paper {
+    background:#faf3dd;
+    border:1px solid #c9b280;
+    padding:24px 20px; flex:1;
+    box-shadow: 0 6px 20px rgba(107,68,35,0.15);
+    position:relative; margin-bottom:12px;
+  }
+  .letter-paper::before {
+    content:''; position:absolute; left:38px; top:0; bottom:0;
+    width:1px; background:rgba(168,50,45,0.25);
+  }
+  .letter-greeting {
+    font-family:'Cormorant Garamond', serif; font-style:italic;
+    font-size:15px; color:#6b4423; margin-bottom:12px; padding-left:18px;
+  }
+  .letter-input {
+    width:100%; min-height:240px; border:none; outline:none;
+    background:transparent; resize:none;
+    font-family:'Cormorant Garamond', 'Noto Serif SC', serif;
+    font-size:17px; line-height:2.1; color:#3d2f1f; padding-left:18px;
+    background-image: repeating-linear-gradient(transparent 0, transparent 33px, rgba(107,68,35,0.15) 33px, rgba(107,68,35,0.15) 34px);
+  }
+  .letter-input::placeholder { color:#a89878; font-style:italic; }
+  .char-count { text-align:right; font-size:11px; color:#a89878; font-family:'Cormorant Garamond', serif; letter-spacing:1px; }
+
+  /* ============ 加载 ============ */
+  #view-loading { align-items:center; justify-content:center; text-align:center; }
+  .loading-ship { width:120px; height:120px; margin-bottom:24px; animation: float 3s ease-in-out infinite; }
+  @keyframes float { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-8px);} }
+  .loading-text { font-size:18px; letter-spacing:4px; color:#3d2f1f; margin-bottom:8px; }
+  .loading-sub { font-family:'Cormorant Garamond', serif; font-style:italic; color:#6b4423; font-size:14px; }
+  .loading-dots span {
+    display:inline-block; width:6px; height:6px; background:#a8322d;
+    border-radius:50%; margin:0 3px; animation: blink 1.4s infinite both;
+  }
+  .loading-dots span:nth-child(2){animation-delay:.2s}
+  .loading-dots span:nth-child(3){animation-delay:.4s}
+  @keyframes blink { 0%,80%,100%{opacity:.2;} 40%{opacity:1;} }
+
+  /* ============ 中文信封（揭幕） ============ */
+  #view-envelope-cn { padding:0; cursor:pointer; }
+  .cn-env-wrap {
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:32px 28px; text-align:center;
+  }
+  .cn-envelope {
+    width:100%; max-width:320px; aspect-ratio: 3/2;
+    background:#e8d5a8; border:1px solid #c9b280;
+    position:relative; box-shadow: 0 10px 30px rgba(107,68,35,0.25);
+    animation: envIn .8s ease;
+  }
+  @keyframes envIn { from{opacity:0; transform:scale(.92) rotate(-2deg);} to{opacity:1; transform:none;} }
+  .cn-envelope .flap {
+    position:absolute; top:0; left:0; right:0; height:45%;
+    background: linear-gradient(180deg, #d4b87a, #e0c890);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+  }
+  .cn-envelope .to-line {
+    position:absolute; left:24px; bottom:30%;
+    font-family:'Noto Serif SC', serif; font-size:15px;
+    color:#2a1f14; line-height:2; text-align:left;
+  }
+  .cn-envelope .to-line .big { font-size:18px; font-weight:700; }
+  .cn-envelope .from-line {
+    position:absolute; left:24px; bottom:12%;
+    font-family:'Noto Serif SC', serif; font-size:11px; color:#6b4423;
+  }
+  .cn-envelope .postmark {
+    position:absolute; top:18%; right:18px;
+    width:54px; height:54px; border:1.5px solid #a8322d; border-radius:50%;
+    color:#a8322d; font-size:8px; text-align:center;
+    display:flex; align-items:center; justify-content:center;
+    transform:rotate(-15deg); opacity:.85;
+  }
+  .cn-envelope .wax {
+    position:absolute; right:16px; bottom:18%;
+    width:44px; height:44px; border-radius:50%;
+    background: radial-gradient(circle at 35% 35%, #c8443c, #7a1f1a);
+    color:#f0e2c0; font-size:12px; display:flex; align-items:center; justify-content:center;
+    box-shadow: inset 0 -3px 6px rgba(0,0,0,.3);
+  }
+  .tap-hint {
+    margin-top:36px; font-size:13px; letter-spacing:6px; color:#a8322d;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .tap-hint-en {
+    font-family:'Cormorant Garamond', serif; font-style:italic;
+    font-size:13px; color:#6b4423; margin-top:6px; letter-spacing:1px;
+  }
+  @keyframes pulse { 0%,100%{opacity:.5;} 50%{opacity:1;} }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ============ 中文信件 ============ */
+  #view-letter-cn { padding:20px 20px 24px; }
+  .cn-toolbar {
+    display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;
+  }
+  .cn-toolbar .title-cn { font-size:18px; font-weight:700; letter-spacing:3px; }
+  .btn-en-toggle {
+    font-family:'Cormorant Garamond', serif; font-size:12px; letter-spacing:2px;
+    background:transparent; border:1px solid #6b4423; color:#6b4423;
+    padding:6px 14px; cursor:pointer; border-radius:2px;
+  }
+  .cn-paper {
+    flex:1; background:#faf3dd; border:1px solid #c9b280;
+    padding:20px; display:flex; justify-content:flex-end;
+    box-shadow: 0 6px 20px rgba(107,68,35,0.15);
+    overflow:hidden; position:relative;
+  }
+  .cn-letter {
+    writing-mode: vertical-rl;
+    font-family:'Noto Serif SC', serif;
+    font-size:15px; line-height:2.2; color:#2a1f14;
+    letter-spacing:3px; height:100%; max-height:420px; flex:0 0 auto;
+  }
+  .cn-letter .lt { font-weight:700; font-size:16px; margin-bottom:10px; }
+  .cn-actions { display:flex; gap:10px; margin-top:14px; }
+  .cn-actions .btn { margin-top:0; flex:1; padding:13px; }
+
+  /* ============ 装饰：印章 & 贴纸 ============ */
+  .cn-paper { position:relative; }
+  .decor-layer {
+    position:absolute; inset:0; z-index:5; pointer-events:none;
+  }
+  .placed-item {
+    position:absolute; pointer-events:auto;
+    cursor:grab; touch-action:none;
+    user-select:none; -webkit-user-select:none;
+    transition: transform .1s;
+  }
+  .placed-item.dragging { cursor:grabbing; z-index:20; opacity:.85; }
+  .placed-item.deletable::after {
+    content:'×'; position:absolute; top:-8px; right:-8px;
+    width:18px; height:18px; background:#a8322d; color:#f0e2c0;
+    border-radius:50%; font-size:12px; line-height:18px; text-align:center;
+    font-family:sans-serif;
+  }
+
+  /* 印章样式 */
+  .seal {
+    width:64px; height:64px;
+    background: #b83a32;
+    color:#f5e6c8;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Noto Serif SC', serif; font-weight:700;
+    box-shadow: inset 0 0 8px rgba(0,0,0,.25), 0 2px 6px rgba(0,0,0,.2);
+    position:relative;
+  }
+  .seal::before {
+    content:''; position:absolute; inset:3px;
+    border:1.5px solid rgba(245,230,200,0.7);
+  }
+  .seal-square { border-radius:3px; font-size:18px; letter-spacing:2px; }
+  .seal-round { border-radius:50%; width:60px; height:60px; font-size:15px; }
+  .seal-round::before { border-radius:50%; }
+  .seal-rect { width:72px; height:48px; font-size:13px; border-radius:2px; }
+  .seal.vertical { writing-mode: vertical-rl; font-size:16px; width:48px; height:72px; }
+
+  /* 贴纸样式 */
+  .sticker {
+    background:#faf3dd; border:1px solid #c9b280;
+    padding:8px 12px;
+    font-family:'Noto Serif SC', serif; font-size:14px; color:#3d2f1f;
+    box-shadow: 0 2px 8px rgba(107,68,35,0.2);
+    display:inline-block;
+  }
+  .sticker-tag { border-radius:12px; background:#f0e2c0; }
+  .sticker-money {
+    border:1.5px solid #a8322d; color:#a8322d;
+    background:#faf3dd; font-weight:600;
+  }
+  .sticker-small { font-size:12px; padding:5px 10px; }
+
+  /* 装饰面板 */
+  .decor-panel {
+    position:absolute; left:0; right:0; bottom:0;
+    background:#f5e6c8; border-top:2px solid #6b4423;
+    z-index:40; padding:16px 16px 20px;
+    transform: translateY(100%); transition: transform .3s ease;
+    max-height:60%; overflow-y:auto;
+  }
+  .decor-panel.show { transform: translateY(0); }
+  .decor-panel .panel-title {
+    font-size:14px; font-weight:700; letter-spacing:3px;
+    margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;
+  }
+  .decor-panel .panel-close {
+    font-size:18px; cursor:pointer; color:#6b4423; padding:0 4px;
+  }
+  .decor-panel .group-label {
+    font-size:11px; letter-spacing:2px; color:#a8332d;
+    margin:12px 0 8px; font-family:'Cormorant Garamond', serif;
+  }
+  .decor-items { display:flex; flex-wrap:wrap; gap:10px; }
+  .decor-item {
+    cursor:pointer; padding:8px; border:1px dashed transparent;
+    border-radius:4px; transition: all .15s;
+    touch-action:none;
+  }
+  .decor-item:hover, .decor-item.selected {
+    border-color:#a8322d; background: rgba(168,50,45,0.06);
+  }
+  .decor-item .hint {
+    font-size:10px; color:#6b4423; text-align:center; margin-top:4px;
+    letter-spacing:1px;
+  }
+
+  /* 装饰按钮 */
+  .btn-decor {
+    font-family:inherit; font-size:12px; letter-spacing:2px;
+    background:transparent; border:1px solid #a8322d; color:#a8322d;
+    padding:6px 14px; cursor:pointer; border-radius:2px;
+  }
+
+  /* 英文原文 overlay */
+  .en-overlay {
+    position:absolute; inset:0; background:rgba(31,23,16,0.96);
+    z-index:50; padding:32px 24px; display:none; flex-direction:column;
+    animation: fadeIn .3s ease;
+  }
+  .en-overlay.show { display:flex; }
+  .en-overlay h3 {
+    font-family:'Cormorant Garamond', serif; font-style:italic;
+    color:#f0e2c0; font-size:16px; margin-bottom:16px; letter-spacing:1px;
+  }
+  .en-overlay .en-text {
+    flex:1; overflow-y:auto;
+    font-family:'Cormorant Garamond', serif; font-size:16px; line-height:1.9;
+    color:#f0e2c0; white-space:pre-wrap;
+  }
+  .en-overlay .close-btn {
+    margin-top:16px; padding:12px; text-align:center;
+    border:1px solid #f0e2c0; color:#f0e2c0; cursor:pointer;
+    font-family:inherit; letter-spacing:4px; font-size:14px; background:transparent;
+  }
+
+  /* toast */
+  .toast {
+    position:fixed; left:50%; bottom:60px; transform:translateX(-50%);
+    background:rgba(61,47,31,.92); color:#f0e2c0;
+    padding:10px 20px; border-radius:20px; font-size:13px;
+    opacity:0; transition: opacity .3s; pointer-events:none; z-index:99;
+  }
+
+  /* ============ 拍照识别 ============ */
+  .scan-upload {
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; gap:16px;
+  }
+  .scan-upload .icon-box {
+    width:80px; height:80px; border:2px dashed #6b4423; border-radius:12px;
+    display:flex; align-items:center; justify-content:center; font-size:36px; color:#6b4423;
+  }
+  .scan-upload .hint-text { font-size:14px; color:#3d2f1f; line-height:1.8; }
+  .scan-upload .hint-en { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:12px; color:#6b4423; }
+  .scan-btns { display:flex; gap:12px; width:100%; margin-top:8px; }
+  .scan-btns .btn { margin-top:0; flex:1; padding:14px; font-size:14px; letter-spacing:2px; }
+  .scan-preview {
+    flex:1; display:flex; flex-direction:column; gap:12px;
+  }
+  .scan-preview img {
+    width:100%; max-height:280px; object-fit:contain; border:1px solid #c9b280; border-radius:4px;
+    background:#faf3dd;
+  }
+  .scan-result-box {
+    background:#faf3dd; border:1px solid #c9b280; padding:12px;
+    max-height:160px; overflow-y:auto; font-size:13px; line-height:1.8;
+  }
+  .scan-edit-box {
+    width:100%; min-height:120px; background:#faf3dd; border:1px solid #c9b280;
+    padding:12px; font-size:13px; line-height:1.8; font-family:inherit;
+    color:#3d2f1f; resize:vertical; border-radius:4px; outline:none;
+  }
+  .scan-edit-box:focus { border-color:#a8322d; }
+  .scan-result-label {
+    font-size:11px; letter-spacing:2px; color:#a8322d; margin-bottom:4px;
+    font-family:'Cormorant Garamond',serif;
+  }
+  .scan-loading {
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; gap:16px;
+  }
+  .scan-step {
+    font-size:13px; color:#3d2f1f; line-height:2;
+  }
+  .scan-step .done { color:#2b7a57; }
+  .scan-step .doing { color:#a8322d; font-weight:700; }
+  .scan-step .wait { color:#a89878; }
+
+
+  /* ============ 结果展示页 ============ */
+  .result-header {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:10px 4px 14px;
+  }
+  .result-title {
+    font-size:13px; letter-spacing:3px; color:#6b4423;
+    font-family:'Cormorant Garamond',serif;
+  }
+  .translate-btn {
+    background:#a8322d; color:#f0e2c0; border:none; border-radius:4px;
+    padding:6px 14px; font-size:12px; letter-spacing:2px; cursor:pointer;
+    font-family:inherit;
+  }
+  .translate-btn:hover { background:#8b2a25; }
+
+  /* 中文信封容器 */
+  .env-cn-wrap {
+    flex:1; display:flex; align-items:center; justify-content:center;
+    padding:10px 0;
+  }
+  .env-cn-box {
+    position:relative; width:280px; max-height:560px;
+  }
+  .env-cn-box img {
+    width:100%; height:auto; display:block;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));
+  }
+  .env-cn-overlay {
+    position:absolute; top:0; left:0; width:100%; height:100%;
+    pointer-events:none;
+  }
+  .env-cn-text {
+    position:absolute; writing-mode:vertical-rl; text-orientation:upright;
+    color:#2a1a0a; font-family:'KaiTi','STKaiti','楷体',serif;
+    text-shadow:0 0 2px rgba(240,226,192,0.8);
+  }
+  .env-cn-to { right:12%; top:15%; font-size:22px; font-weight:700; letter-spacing:4px; }
+  .env-cn-addr { right:4%; top:18%; font-size:13px; letter-spacing:2px; }
+  .env-cn-from { left:4%; top:20%; font-size:13px; letter-spacing:2px; }
+  .env-cn-money { left:12%; top:15%; font-size:14px; color:#a8322d; font-weight:700; letter-spacing:2px; }
+
+  /* 英文信封模板 */
+  .env-en-wrap {
+    position:relative; width:100%; aspect-ratio:1728/1692;
+  }
+  .env-en-bg {
+    width:100%; height:100%; object-fit:contain; display:block;
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));
+  }
+  .env-en-from {
+    position:absolute; top:14%; left:8%; width:32%;
+    font-family:'Cormorant Garamond',serif; font-size:11px;
+    line-height:1.6; color:#2a1a0a;
+  }
+  .env-en-to {
+    position:absolute; bottom:18%; right:8%; width:38%;
+    font-family:'Cormorant Garamond',serif; font-size:13px;
+    line-height:1.7; color:#2a1a0a; text-align:left;
+  }
+
+  /* 模态框（英文信封/英文信） */
+  .modal-overlay {
+    position:fixed; top:0; left:0; width:100%; height:100%;
+    background:rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center;
+    z-index:100; padding:20px;
+  }
+  .modal-overlay.active { display:flex; }
+  .modal-box {
+    background:#f0e2c0; border:2px solid #6b4423; border-radius:8px;
+    padding:24px; max-width:360px; width:100%; max-height:80vh; overflow-y:auto;
+    position:relative; box-shadow:0 8px 32px rgba(0,0,0,0.3);
+  }
+  .modal-close {
+    position:absolute; top:8px; right:12px; font-size:24px; color:#6b4423;
+    cursor:pointer; background:none; border:none; line-height:1;
+  }
+  .modal-title {
+    font-size:14px; letter-spacing:3px; color:#a8322d; text-align:center;
+    margin-bottom:16px; font-family:'Cormorant Garamond',serif;
+  }
+  .modal-envelope {
+    background:#faf3dd; border:1px solid #c9b280; padding:20px;
+    font-family:'Cormorant Garamond',serif; font-size:14px; line-height:2;
+    color:#3d2f1f;
+  }
+  .modal-envelope .env-label { font-size:10px; letter-spacing:2px; color:#a89878; }
+  .modal-letter {
+    background:#faf3dd; border:1px solid #c9b280; padding:20px;
+    font-family:'Cormorant Garamond',serif; font-size:14px; line-height:1.9;
+    color:#3d2f1f; white-space:pre-wrap;
+  }
+
+  /* 中文信页 */
+  .letter-cn-wrap {
+    flex:1; display:flex; flex-direction:column; align-items:center;
+    padding:10px 0; overflow:hidden;
+  }
+  .letter-cn-paper {
+    position:relative; width:100%; flex:1; background:#faf3dd;
+    border:1px solid #c9b280; padding:20px 16px; overflow-y:auto;
+  }
+  .letter-cn-content {
+    writing-mode:vertical-rl; text-orientation:upright;
+    font-family:'KaiTi','STKaiti','楷体',serif; font-size:16px;
+    line-height:2; color:#2a1a0a; height:100%;
+  }
+  .letter-cn-content .lt-title {
+    font-size:20px; font-weight:700; color:#a8322d; margin-left:12px;
+  }
+
+</style>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+</head>
+<body>
+
+<div class="phone">
+
+  <!-- ===== 1. 欢迎 ===== -->
+  <section class="view active" id="view-welcome">
+    <div class="welcome-stamp">POST<br>1930s<br>闽侨批局</div>
+    <h1 class="welcome-title">一封侨批</h1>
+    <div class="welcome-subtitle-en">A Letter from Across the Sea</div>
+    <div class="welcome-divider"></div>
+    <p class="welcome-desc">
+      数百年前，下南洋的华侨把思念与银钱封入一封封"侨批"，漂洋过海寄回家乡。<br>
+      现在，换你提笔。<br><br>
+      <span style="font-family:'Cormorant Garamond',serif; font-style:italic; color:#6b4423; font-size:12px;">Hundreds of years ago, Chinese emigrants sealed their longing and savings into "Qiaopi" — letters that crossed the sea to reach home. Now it's your turn to write.</span>
+    </p>
+    <button class="btn" onclick="go('envelope-en')">开始书写 · Start</button>
+    <button class="btn ghost" style="margin-top:12px; box-shadow:none;" onclick="go('scan')">拍照识别 · Scan Letter</button>
+  </section>
+
+  <!-- ===== 2. 英文信封 ===== -->
+  <section class="view" id="view-envelope-en">
+    <div class="back-link" onclick="go('welcome')">← 返回 · Back</div>
+    <div class="page-head">
+      <div class="page-step">Step 01 · 信封 / Envelope</div>
+      <div class="page-title">Address the Letter</div>
+      <div class="page-hint">写上寄件人与收件人，让这封家书知道去往何方。<br>Fill in sender and recipient, so the letter knows where to go.</div>
+    </div>
+    <div class="envelope-visual">
+      <div class="envelope-stamp">STAMP<br>侨批</div>
+      <div class="envelope-pm">海沧<br>1935</div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Your Name · 寄件人</label>
+          <input id="fromName" type="text" placeholder="e.g. John Lee">
+        </div>
+        <div class="form-field">
+          <label>From · 来自</label>
+          <input id="fromPlace" type="text" placeholder="e.g. Singapore">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>To · 收件人</label>
+          <input id="toName" type="text" placeholder="e.g. Father">
+        </div>
+        <div class="form-field">
+          <label>Destination · 寄往</label>
+          <input id="toPlace" type="text" placeholder="e.g. Xiamen, China">
+        </div>
+      </div>
+    </div>
+    <button class="btn" onclick="goLetter()">Next · 下一步</button>
+  </section>
+
+  <!-- ===== 3. 英文信纸 ===== -->
+  <section class="view" id="view-letter-en">
+    <div class="back-link" onclick="go('envelope-en')">← 返回 · Back</div>
+    <div class="page-head">
+      <div class="page-step">Step 02 · 写信 / Write</div>
+      <div class="page-title">Write Home</div>
+      <div class="page-hint">用英文写下你想告诉家人的话。<br>Write your message to your family in English.</div>
+    </div>
+    <div class="letter-paper">
+      <div class="letter-greeting">Dear my family,</div>
+      <textarea class="letter-input" id="enLetter" placeholder="I have arrived safely in the south... It has been a hard year, but I will send money home soon. Tell mother I miss her cooking..." oninput="updateCount()"></textarea>
+    </div>
+    <div class="char-count"><span id="charCount">0</span> words</div>
+    <button class="btn" onclick="finishWrite()">Finish · 完成并翻译</button>
+  </section>
+
+  <!-- ===== 4. 加载 ===== -->
+  <section class="view" id="view-loading">
+    <svg class="loading-ship" viewBox="0 0 120 120" fill="none">
+      <path d="M20 80 L100 80 L90 95 L30 95 Z" fill="#6b4423"/>
+      <rect x="55" y="40" width="4" height="40" fill="#3d2f1f"/>
+      <path d="M59 42 L90 65 L59 70 Z" fill="#f0e2c0" stroke="#6b4423"/>
+      <path d="M51 45 L30 65 L51 70 Z" fill="#e8d5a8" stroke="#6b4423"/>
+      <path d="M10 100 Q 25 95 40 100 T 70 100 T 100 100 T 130 100" stroke="#a8322d" stroke-width="2" fill="none"/>
+    </svg>
+    <div class="loading-text">侨批正在译回家乡</div>
+    <div class="loading-sub">Translating your letter...</div>
+    <div class="loading-dots" style="margin-top:16px;"><span></span><span></span><span></span></div>
+  </section>
+
+  <!-- ===== 拍照识别：上传 ===== -->
+  <section class="view" id="view-scan">
+    <div class="back-link" onclick="go('welcome')">← 返回 · Back</div>
+    <div class="page-head">
+      <div class="page-step">Scan · 拍照识别</div>
+      <div class="page-title">识别家书 · OCR</div>
+      <div class="page-hint">拍摄或上传一封英文家书，系统将自动识别并翻译，你可以同时填写信封信息。<br>Snap or upload an English letter — auto translate while you fill the envelope.</div>
+    </div>
+    <div class="scan-upload" id="scanUpload">
+      <div class="icon-box">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6b4423" stroke-width="1.5">
+          <rect x="3" y="5" width="18" height="14" rx="2"/>
+          <circle cx="12" cy="12" r="3.5"/>
+          <path d="M8 5l1.5-2h5L16 5"/>
+        </svg>
+      </div>
+      <div class="hint-text">选择一张英文家书图片<br><span class="hint-en">Choose an image of an English letter</span></div>
+      <div class="scan-btns">
+        <button class="btn" onclick="document.getElementById('scanCamera').click()">拍照 · Camera</button>
+        <button class="btn ghost" onclick="document.getElementById('scanFile').click()">相册 · Gallery</button>
+      </div>
+      <input type="file" id="scanCamera" accept="image/*" capture="environment" style="display:none;" onchange="handleScanFile(this)">
+      <input type="file" id="scanFile" accept="image/*" style="display:none;" onchange="handleScanFile(this)">
+    </div>
+  </section>
+
+  <!-- ===== 拍照识别：填信封（后台同时处理） ===== -->
+  <section class="view" id="view-scan-envelope">
+    <div class="back-link" onclick="go('scan')">← 返回 · Back</div>
+    <div class="page-head">
+      <div class="page-step">Step 01 · 信封 / Envelope</div>
+      <div class="page-title">Address the Letter</div>
+      <div class="page-hint">填写信封信息，系统正在后台识别并翻译你的家书。<br>Fill in envelope info while we translate your letter in the background.</div>
+    </div>
+    <!-- 后台处理状态条 -->
+    <div id="scanStatusBar" style="background:#faf3dd; border:1px solid #c9b280; border-radius:4px; padding:8px 12px; margin-bottom:12px; font-size:12px; color:#6b4423; display:flex; align-items:center; gap:8px;">
+      <span style="width:12px; height:12px; border:2px solid #c9b280; border-top-color:#a8322d; border-radius:50%; animation: spin 1s linear infinite; display:inline-block;"></span>
+      <span id="scanStatusText">正在识别并翻译家书 · Recognizing & translating...</span>
+    </div>
+    <div class="envelope-visual">
+      <div class="envelope-stamp">STAMP<br>侨批</div>
+      <div class="envelope-pm">海沧<br>1935</div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Your Name · 寄件人</label>
+          <input id="scanFromName" type="text" placeholder="e.g. John Lee">
+        </div>
+        <div class="form-field">
+          <label>From · 来自</label>
+          <input id="scanFromPlace" type="text" placeholder="e.g. Singapore">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>To · 收件人</label>
+          <input id="scanToName" type="text" placeholder="e.g. Father">
+        </div>
+        <div class="form-field">
+          <label>Destination · 寄往</label>
+          <input id="scanToPlace" type="text" placeholder="e.g. Xiamen, China">
+        </div>
+      </div>
+    </div>
+    <button class="btn" onclick="scanNext()">Next · 下一步</button>
+  </section>
+
+
+  <!-- ===== 5. 信件对照（点屏幕继续） ===== -->
+  <section class="view" id="view-letter-compare" onclick="go('envelope-compare')">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <div class="back-link" onclick="event.stopPropagation(); go('letter-en')">← 重写 · Edit</div>
+      <div style="text-align:center; flex:1;">
+        <div style="font-size:11px; letter-spacing:3px; color:#a8322d;">信 件 对 照 · LETTER</div>
+        <div style="font-size:13px; color:#6b4423; margin-top:4px;">English Original / 中文家书</div>
+      </div>
+      <div style="width:80px;"></div>
+    </div>
+    <div style="display:flex; gap:10px; flex:1; overflow:hidden;">
+      <div style="flex:1; background:#faf3dd; border:1px solid #c9b280; padding:14px; overflow-y:auto;">
+        <div style="font-family:'Cormorant Garamond',serif; font-style:italic; font-size:11px; color:#a8322d; margin-bottom:8px;">English Original</div>
+        <div style="font-family:'Cormorant Garamond',serif; font-size:13px; line-height:1.8; white-space:pre-wrap; color:#3d2f1f;" id="cmpEnLetter2"></div>
+      </div>
+      <div style="flex:1; background:#faf3dd; border:1px solid #c9b280; padding:14px; overflow-y:auto;">
+        <div style="font-size:11px; color:#a8322d; margin-bottom:8px;">中文家书</div>
+        <div style="font-size:13px; line-height:1.9; color:#2a1f14;" id="cmpCnLetter2"></div>
+      </div>
+    </div>
+    <div style="text-align:center; margin-top:14px;">
+      <div style="font-size:13px; letter-spacing:6px; color:#a8322d; animation: pulse 2s ease-in-out infinite;">点 击 继 续</div>
+      <div style="font-family:'Cormorant Garamond',serif; font-style:italic; font-size:12px; color:#6b4423; margin-top:4px;">Tap to continue</div>
+    </div>
+  </section>
+
+  <!-- ===== 6. 信封对照（点屏幕继续） ===== -->
+  <section class="view" id="view-envelope-compare" onclick="go('letter-cn')">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <div class="back-link" onclick="event.stopPropagation(); go('letter-compare')">← 信件对照 · Back</div>
+      <div style="text-align:center; flex:1;">
+        <div style="font-size:11px; letter-spacing:3px; color:#a8322d;">信 封 对 照 · ENVELOPE</div>
+        <div style="font-size:13px; color:#6b4423; margin-top:4px;">English Envelope / 中文信封</div>
+      </div>
+      <div style="width:80px;"></div>
+    </div>
+    <div style="display:flex; gap:10px; flex:1; overflow:hidden;">
+      <!-- 英文信封 -->
+      <div style="flex:1; background:#e8d5a8; border:1px solid #c9b280; padding:14px; position:relative;">
+        <div style="font-family:'Cormorant Garamond',serif; font-style:italic; font-size:11px; color:#a8322d; margin-bottom:10px;">English Envelope</div>
+        <div style="font-family:'Cormorant Garamond',serif; font-size:12px; line-height:2; color:#3d2f1f;" id="cmpEnEnv2"></div>
+      </div>
+      <!-- 中文信封 -->
+      <div style="flex:1; background:#e8d5a8; border:1px solid #c9b280; padding:14px; position:relative;">
+        <div style="font-size:11px; color:#a8322d; margin-bottom:10px;">中文信封</div>
+        <div style="font-size:12px; line-height:2; color:#2a1f14;" id="cmpCnEnv2"></div>
+        <div style="position:absolute; right:10px; bottom:10px; width:32px; height:32px; border-radius:50%; background:radial-gradient(circle at 35% 35%, #c8443c, #7a1f1a); color:#f0e2c0; font-size:10px; display:flex; align-items:center; justify-content:center;">批</div>
+      </div>
+    </div>
+    <div style="text-align:center; margin-top:14px;">
+      <div style="font-size:13px; letter-spacing:6px; color:#a8322d; animation: pulse 2s ease-in-out infinite;">点 击 装 饰 家 书</div>
+      <div style="font-family:'Cormorant Garamond',serif; font-style:italic; font-size:12px; color:#6b4423; margin-top:4px;">Tap to decorate your letter</div>
+    </div>
+  </section>
+
+  <!-- ===== 6. 中文信件 ===== -->
+  <section class="view" id="view-letter-cn">
+    <div class="cn-toolbar">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span class="back-link" onclick="go('envelope-compare')" style="margin-bottom:0;">← 返回</span>
+        <div class="title-cn">家书已达 <span style="font-size:11px; font-weight:400; color:#6b4423; letter-spacing:1px;">Letter Delivered</span></div>
+      </div>
+      <button class="btn-decor" onclick="toggleDecor(true)">装饰 · Decorate</button>
+    </div>
+    <div class="cn-paper" id="cnPaper">
+      <div class="cn-letter" id="cnLetter"></div>
+      <div class="decor-layer" id="decorLayer"></div>
+    </div>
+    <div class="cn-actions">
+      <button class="btn ghost" onclick="saveImage()">保存 · Save</button>
+      <button class="btn" onclick="resetAll()">再写一封 · Again</button>
+    </div>
+
+    <!-- 装饰面板 -->
+    <div class="decor-panel" id="decorPanel">
+      <div class="panel-title">
+        <span>装饰这封家书 · Decorate</span>
+        <span class="panel-close" onclick="toggleDecor(false)">×</span>
+      </div>
+      <div style="font-size:11px; color:#6b4423; margin-bottom:8px; line-height:1.6;">
+        按住印章或贴纸，拖到信纸上的任意位置。<br>
+        Press and hold a seal or sticker, then drag it onto the letter.
+      </div>
+
+      <div class="group-label">· 印 章 · Seals ·</div>
+      <div class="decor-items" id="sealItems"></div>
+
+      <div class="group-label">· 贴 纸 · Stickers ·</div>
+      <div class="decor-items" id="stickerItems"></div>
+    </div>
+  </section>
+
+
+  <!-- ===== 结果：中文信封 ===== -->
+  <section class="view" id="view-result-env-cn">
+    <div class="result-header">
+      <div class="result-title">中文信封 · Chinese Envelope</div>
+      <button class="translate-btn" onclick="toggleModal('modalEnvEn')">译 · EN</button>
+    </div>
+    <div class="env-cn-wrap">
+      <div class="env-cn-box">
+        <img src="assets/envelope-cn.png" alt="侨批信封">
+        <div class="env-cn-overlay">
+          <div class="env-cn-text env-cn-to" id="resEnvTo">收批人</div>
+          <div class="env-cn-text env-cn-addr" id="resEnvAddr">地址</div>
+          <div class="env-cn-text env-cn-from" id="resEnvFrom">寄批人</div>
+        </div>
+      </div>
+    </div>
+    <button class="btn" onclick="goResultLetter()">下一步 · Next</button>
+  </section>
+
+  <!-- ===== 结果：中文信 ===== -->
+  <section class="view" id="view-result-letter-cn">
+    <div class="result-header">
+      <div class="result-title">中文家书 · Chinese Letter</div>
+      <button class="translate-btn" onclick="toggleModal('modalLetterEn')">译 · EN</button>
+    </div>
+    <div class="letter-cn-wrap">
+      <div class="letter-cn-paper" id="letterCnPaper">
+        <div class="letter-cn-content" id="letterCnContent"></div>
+        <div class="decor-layer" id="decorLayer2"></div>
+      </div>
+    </div>
+    <div style="display:flex; gap:10px; margin-top:12px;">
+      <button class="btn ghost" style="margin-top:0; flex:1;" onclick="toggleDecor2(true)">装饰 · Decorate</button>
+      <button class="btn" style="margin-top:0; flex:1;" onclick="saveBoth()">保存 · Save</button>
+    </div>
+
+    <!-- 装饰面板2 -->
+    <div class="decor-panel" id="decorPanel2">
+      <div class="panel-title">
+        <span>装饰这封家书 · Decorate</span>
+        <span class="panel-close" onclick="toggleDecor2(false)">×</span>
+      </div>
+      <div style="font-size:11px; color:#6b4423; margin-bottom:8px; line-height:1.6;">
+        按住印章或贴纸，拖到信纸上的任意位置。<br>
+        Press and hold a seal or sticker, then drag it onto the letter.
+      </div>
+      <div class="group-label">· 印 章 · Seals ·</div>
+      <div class="decor-items" id="sealItems2"></div>
+      <div class="group-label">· 贴 纸 · Stickers ·</div>
+      <div class="decor-items" id="stickerItems2"></div>
+    </div>
+  </section>
+
+  <!-- ===== 模态框：英文信封 ===== -->
+  <div class="modal-overlay" id="modalEnvEn" onclick="if(event.target===this)toggleModal('modalEnvEn')">
+    <div class="modal-box" style="max-width:480px; padding:16px;">
+      <button class="modal-close" onclick="toggleModal('modalEnvEn')">×</button>
+      <div class="modal-title">英文信封 · English Envelope</div>
+      <div class="env-en-wrap" id="modalEnvEnContent">
+        <img src="assets/envelope-en.png" class="env-en-bg" alt="English envelope">
+        <div class="env-en-from" id="envEnFrom"></div>
+        <div class="env-en-to" id="envEnTo"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 模态框：英文信 ===== -->
+  <div class="modal-overlay" id="modalLetterEn" onclick="if(event.target===this)toggleModal('modalLetterEn')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="toggleModal('modalLetterEn')">×</button>
+      <div class="modal-title">英文原信 · English Original</div>
+      <div class="modal-letter" id="modalLetterEnContent"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+  const state = { en:'', fromName:'', fromPlace:'', toName:'', toPlace:'', scanStatus:'idle', scanResult:null, writeResult:null };
+
+  function go(name) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-' + name).classList.add('active');
+  }
+  function updateCount() {
+    const v = document.getElementById('enLetter').value.trim();
+    document.getElementById('charCount').textContent = v ? v.split(/\s+/).length : 0;
+  }
+
+  function goLetter() {
+    state.fromName = document.getElementById('fromName').value.trim();
+    state.fromPlace = document.getElementById('fromPlace').value.trim();
+    state.toName = document.getElementById('toName').value.trim();
+    state.toPlace = document.getElementById('toPlace').value.trim();
+    if (!state.fromName || !state.toName) { toast('请填写寄件人与收件人'); return; }
+    go('letter-en');
+  }
+
+  function pickChinese(en) {
+    const len = en.length;
+    const samples = [
+      { title:'禀父母', body:'父母亲大人膝下敬禀者。男自抵南洋，倏忽半载。异域风寒，幸得平安。遥望家乡，寸心常系。今寄回银钱若干，望大人善自珍重。男远游，不能侍侧，死罪死罪。' },
+      { title:'禀父母亲', body:'父母亲大人膝下敬禀者。男自丙午秋辞家南渡，抵叻已逾一载。此地风物虽殊，乡音未改。日间佣工于店肆，夜则挑灯展读家书。母亲玉体起居何如？父亲咳嗽可愈否？家中弟妹读书尚勤否？男在此一切安善，望大人勿念。兹付回英银若干，聊佐甘旨。临书依依，不尽欲言。' },
+      { title:'禀双亲大人', body:'父母亲大人尊前敬禀者。男别家乡，转瞬三霜。初抵南洋，举目无亲，赁居于牛车水侧，日则操持劳役，夜则思亲泣下。赖祖宗庇佑，渐得安身。此间华洋杂处，习俗与故土迥异，然每逢佳节，辄登楼高望，犹见唐山云山万重。母亲大人旧疾全愈否？父亲步履尚健否？男在外虽苦，然不敢稍懈，所冀者，家中大小平安，他日稍有积蓄，即当归乡省亲。兹付回英银百元，望查收。临颖神驰，不尽欲白。男 百拜' }
+    ];
+    if (len < 200) return samples[0];
+    if (len < 500) return samples[1];
+    return samples[2];
+  }
+
+  async function finishWrite() {
+    state.en = document.getElementById('enLetter').value.trim();
+    if (!state.en) { toast('请先写下几句心里话'); return; }
+    go('loading');
+    try {
+      const fullPrompt = "以下是一封英文家书的原文，请完成以下两步，严格按格式输出，不要加任何其他解释：\n\n【中文翻译】\n（通顺的中文翻译）\n\n【文白结合】\n（仿清末民初侨批风格的文白夹杂家书，称谓用'母亲大人膝下'或'父亲大人膝下'，语气恭敬恳切，保留原文意思）\n\n英文原文如下：\n" + state.en;
+
+      const raw = await callModel([{ role: "user", content: fullPrompt }]);
+
+      function extractSection(text, marker) {
+        const re = new RegExp("【" + marker + "】([\\s\\S]*?)(?=【|$)");
+        const m = text.match(re);
+        return m ? m[1].trim() : "";
+      }
+      const cn = extractSection(raw, "中文翻译");
+      const classical = extractSection(raw, "文白结合");
+      state.writeResult = { cn: cn, classical: classical };
+      renderResult();
+    } catch (err) {
+      alert("翻译失败：" + err.message + "\n请检查网络连接后重试。");
+      go('letter-en');
+    }
+  }
+
+  function renderResult() {
+    const r = state.writeResult || {};
+    const classical = r.classical || r.cn || "";
+    // 中文竖排信件（装饰页用）
+    document.getElementById('cnLetter').innerHTML = '<span class="lt">侨批</span>' + classical;
+
+    // 信件对照页
+    document.getElementById('cmpEnLetter2').textContent = state.en;
+    document.getElementById('cmpCnLetter2').textContent = classical;
+
+    // 信封对照页
+    document.getElementById('cmpEnEnv2').innerHTML =
+      'From: ' + (state.fromName||'—') + '<br>' +
+      'From: ' + (state.fromPlace||'—') + '<br><br>' +
+      'To: ' + (state.toName||'—') + '<br>' +
+      'To: ' + (state.toPlace||'—');
+    document.getElementById('cmpCnEnv2').innerHTML =
+      '寄件人：' + (state.fromName||'—') + '<br>' +
+      '来自：' + (state.fromPlace||'—') + '<br><br>' +
+      '收件人：' + (state.toName||'—') + '<br>' +
+      '寄往：' + (state.toPlace||'—');
+
+    renderResultEnvelope();
+    go('result-env-cn');
+  }
+
+  async function saveImage() {
+    const paper = document.getElementById('cnPaper');
+    if (!paper) { toast('找不到信件内容'); return; }
+    toast('正在生成图片...');
+    try {
+      const canvas = await html2canvas(paper, {
+        backgroundColor: '#faf3dd',
+        scale: 2,
+        useCORS: true,
+        logging: false
+      });
+      const filename = '侨批_Qiaopi_' + Date.now() + '.png';
+
+      // 桌面端：用 File System Access API 弹出保存对话框，可选文件夹
+      const isDesktop = !('ontouchstart' in window) || window.matchMedia('(pointer: fine)').matches;
+      if (isDesktop && window.showSaveFilePicker) {
+        try {
+          const handle = await window.showSaveFilePicker({
+            suggestedName: filename,
+            types: [{ description: 'PNG Image', accept: { 'image/png': ['.png'] } }]
+          });
+          const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+          const writable = await handle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+          toast('已保存到所选文件夹 · Saved');
+          return;
+        } catch (e) {
+          // 用户取消了保存对话框，不报错
+          if (e.name === 'AbortError') return;
+          // 其他错误回退到普通下载
+        }
+      }
+
+      // 手机端或不支持时：普通下载（手机会保存到相册/下载）
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      toast('图片已保存 · Saved');
+    } catch (err) {
+      alert('保存失败：' + err.message);
+    }
+  }
+
+
+  // ============ 结果展示页 ============
+  function toggleModal(id) {
+    const m = document.getElementById(id);
+    m.classList.toggle('active');
+  }
+
+  function renderResultEnvelope() {
+    // 中文信封信息
+    document.getElementById('resEnvTo').textContent = state.toName || '收批人';
+    document.getElementById('resEnvAddr').textContent = state.toPlace || '';
+    document.getElementById('resEnvFrom').textContent = (state.fromName || '') + (state.fromPlace ? '  ' + state.fromPlace : '');
+
+    // 英文信封模态框（左上角寄件人，右下角收件人）
+    document.getElementById('envEnFrom').innerHTML =
+      (state.fromName || '—') + '<br>' +
+      (state.fromPlace || '');
+    document.getElementById('envEnTo').innerHTML =
+      (state.toName || '—') + '<br>' +
+      (state.toPlace || '');
+
+    // 英文信模态框
+    document.getElementById('modalLetterEnContent').textContent = state.en || '';
+  }
+
+  function goResultLetter() {
+    // 渲染中文信
+    const r = state.writeResult || state.scanResult || {};
+    const classical = r.classical || r.cn || '';
+    document.getElementById('letterCnContent').innerHTML =
+      '<span class="lt-title">侨批</span>' + classical;
+    // 清空装饰
+    document.getElementById('decorLayer2').innerHTML = '';
+    go('result-letter-cn');
+  }
+
+  // 装饰面板2（中文信页用）
+  function toggleDecor2(show) {
+    document.getElementById('decorPanel2').classList.toggle('active', show);
+  }
+
+  function buildDecorItems2() {
+    const sealBox = document.getElementById('sealItems2');
+    sealBox.innerHTML = '';
+    SEALS.forEach(s => {
+      const div = document.createElement('div');
+      div.className = 'decor-item';
+      div.innerHTML = '<div class="seal ' + s.cls + '">' + s.text + '</div><div class="hint">' + s.label + '</div>';
+      div.addEventListener('pointerdown', e => startDragFromPanel2(e, s));
+      sealBox.appendChild(div);
+    });
+    const stickerBox = document.getElementById('stickerItems2');
+    stickerBox.innerHTML = '';
+    STICKERS.forEach(s => {
+      const div = document.createElement('div');
+      div.className = 'decor-item';
+      div.innerHTML = '<div class="' + s.cls + '">' + s.text + '</div><div class="hint">' + s.label + '</div>';
+      div.addEventListener('pointerdown', e => startDragFromPanel2(e, s));
+      stickerBox.appendChild(div);
+    });
+  }
+
+  function startDragFromPanel2(e, item) {
+    e.preventDefault();
+    const paper = document.getElementById('letterCnPaper');
+    const rect = paper.getBoundingClientRect();
+    const el = document.createElement('div');
+    el.className = item.type === 'seal' ? 'seal ' + item.cls : item.cls;
+    el.textContent = item.text;
+    el.style.position = 'absolute';
+    el.style.left = (e.clientX - rect.left - 30) + 'px';
+    el.style.top = (e.clientY - rect.top - 30) + 'px';
+    el.style.zIndex = '10';
+    el.style.cursor = 'grab';
+    paper.appendChild(el);
+
+    let dragging = true;
+    function move(ev) {
+      if (!dragging) return;
+      el.style.left = (ev.clientX - rect.left - 30) + 'px';
+      el.style.top = (ev.clientY - rect.top - 30) + 'px';
+    }
+    function up() {
+      dragging = false;
+      document.removeEventListener('pointermove', move);
+      document.removeEventListener('pointerup', up);
+    }
+    // 允许再次拖动已放置的元素
+    el.addEventListener('pointerdown', function(ev) {
+      ev.stopPropagation();
+      dragging = true;
+      document.addEventListener('pointermove', move);
+      document.addEventListener('pointerup', up);
+    });
+    document.addEventListener('pointermove', move);
+    document.addEventListener('pointerup', up);
+    toggleDecor2(false);
+  }
+
+  // 保存中文信封 + 英文信封（两张图）
+  async function saveBoth() {
+    toast('正在生成图片...');
+    try {
+      // 1. 保存中文信封
+      const envBox = document.querySelector('.env-cn-box');
+      if (envBox && window.html2canvas) {
+        const canvas1 = await html2canvas(envBox, { backgroundColor: null, scale: 2, useCORS: true, logging: false });
+        downloadCanvas(canvas1, '侨批信封_ChineseEnvelope.png');
+      }
+
+      // 2. 保存中文信（含装饰）
+      const paper = document.getElementById('letterCnPaper');
+      if (paper && window.html2canvas) {
+        const canvas2 = await html2canvas(paper, { backgroundColor: '#faf3dd', scale: 2, useCORS: true, logging: false });
+        downloadCanvas(canvas2, '侨批家书_ChineseLetter.png');
+      }
+
+      toast('两张图片已保存 · Saved');
+    } catch (err) {
+      alert('保存失败：' + err.message);
+    }
+  }
+
+  function downloadCanvas(canvas, filename) {
+    const isDesktop = !('ontouchstart' in window) || window.matchMedia('(pointer: fine)').matches;
+    if (isDesktop && window.showSaveFilePicker) {
+      canvas.toBlob(async function(blob) {
+        try {
+          const handle = await window.showSaveFilePicker({
+            suggestedName: filename,
+            types: [{ description: 'PNG Image', accept: { 'image/png': ['.png'] } }]
+          });
+          const writable = await handle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+        } catch(e) { if (e.name !== 'AbortError') fallbackDownload(canvas, filename); }
+      }, 'image/png');
+    } else {
+      fallbackDownload(canvas, filename);
+    }
+  }
+
+  function fallbackDownload(canvas, filename) {
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }
+
+  function resetAll() {
+    ['enLetter','fromName','fromPlace','toName','toPlace','scanFromName','scanFromPlace','scanToName','scanToPlace'].forEach(id => { const el = document.getElementById(id); if (el) el.value=''; });
+    state.scanStatus='idle'; state.scanResult=null;
+    updateCount();
+    document.getElementById('decorLayer').innerHTML = '';
+    go('welcome');
+  }
+
+  // ============ 装饰：印章 & 贴纸 ============
+  const SEALS = [
+    { type:'seal', text:'平安',   cls:'seal-square', label:'平安 Peace' },
+    { type:'seal', text:'家书',   cls:'seal-square', label:'家书 Letter' },
+    { type:'seal', text:'思故里', cls:'seal-round',  label:'思故里 Homesick' },
+    { type:'seal', text:'家书抵万金', cls:'seal-rect', label:'家书抵万金' },
+    { type:'seal', text:'珍重', cls:'seal-vertical', label:'珍重 Take Care' },
+    { type:'seal', text:'雁足传书', cls:'seal-round', label:'雁足传书' },
+  ];
+  const STICKERS = [
+    { type:'sticker', cls:'sticker sticker-tag',   text:'母亲大人膝下', label:'母亲大人膝下' },
+    { type:'sticker', cls:'sticker sticker-tag',   text:'一切安好', label:'一切安好 Well' },
+    { type:'sticker', cls:'sticker sticker-money', text:'银洋伍元', label:'银洋伍元 $5' },
+    { type:'sticker', cls:'sticker sticker-tag',   text:'望珍重', label:'望珍重' },
+    { type:'sticker', cls:'sticker sticker-small', text:'父安', label:'父安 Father' },
+    { type:'sticker', cls:'sticker sticker-small', text:'母安', label:'母安 Mother' },
+  ];
+
+
+  // ============ 拍照识别 ============
+  const SCAN_API = "https://qiaopi-proxy-glfhwtdxma.cn-hangzhou.fcapp.run/";
+  const SCAN_KEY = "sk-3ac616faf0042bf59f89f97b3aca507bf176c8e544796fd1f4fc50f39f4b5829";
+  const SCAN_MODEL = "glm-5.3-flash";
+  let scanImageB64 = "";
+
+  async function callModel(messages) {
+    const resp = await fetch(SCAN_API, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + SCAN_KEY
+      },
+      body: JSON.stringify({ model: SCAN_MODEL, messages: messages, temperature: 0.3 })
+    });
+    if (!resp.ok) throw new Error("API error " + resp.status);
+    const data = await resp.json();
+    return data.choices[0].message.content.trim();
+  }
+
+  // 上传图片后立刻后台处理，同时跳到填信封页
+  function handleScanFile(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      scanImageB64 = e.target.result;
+      state.scanStatus = "processing";
+      state.scanResult = null;
+      // 后台异步处理，不等待
+      runScanPipeline();
+      // 立刻跳到填信封页
+      go("scan-envelope");
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // 后台完整工作流：OCR + 翻译 + 文白结合（一次调用）
+  async function runScanPipeline() {
+    try {
+      const fullPrompt = "请识别这张图片中的英文文字，然后完成以下三步，严格按格式输出，不要加任何其他解释：\n\n【英文原文】\n（识别到的英文原文，逐行保留）\n\n【中文翻译】\n（通顺的中文翻译）\n\n【文白结合】\n（仿清末民初侨批风格的文白夹杂家书，称谓用'母亲大人膝下'或'父亲大人膝下'，语气恭敬恳切，保留原文意思）";
+
+      const raw = await callModel([
+        { role: "user", content: [
+          { type: "text", text: fullPrompt },
+          { type: "image_url", image_url: { url: scanImageB64 } }
+        ]}
+      ]);
+
+      function extractSection(text, marker) {
+        const re = new RegExp("【" + marker + "】([\\s\\S]*?)(?=【|$)");
+        const m = text.match(re);
+        return m ? m[1].trim() : "";
+      }
+      const en = extractSection(raw, "英文原文") || raw;
+      const cn = extractSection(raw, "中文翻译");
+      const classical = extractSection(raw, "文白结合");
+
+      state.scanResult = { en: en, cn: cn, classical: classical };
+      state.scanStatus = "done";
+
+      // 更新状态条
+      const bar = document.getElementById("scanStatusBar");
+      const txt = document.getElementById("scanStatusText");
+      if (bar && txt) {
+        bar.style.background = "#e8f5e9";
+        bar.style.borderColor = "#a5d6a7";
+        bar.innerHTML = '<span style="color:#2b7a57; font-weight:700;">✓</span><span style="color:#2b7a57;">家书翻译完成 · Translation ready</span>';
+      }
+    } catch (err) {
+      state.scanStatus = "error";
+      state.scanError = err.message;
+      const bar = document.getElementById("scanStatusBar");
+      if (bar) {
+        bar.style.background = "#ffebee";
+        bar.style.borderColor = "#ef9a9a";
+        bar.innerHTML = '<span style="color:#c62828;">✗</span><span style="color:#c62828;">翻译失败：' + err.message + ' · 请重试</span>';
+      }
+    }
+  }
+
+  // 填完信封点下一步
+  function scanNext() {
+    state.fromName = document.getElementById("scanFromName").value.trim();
+    state.fromPlace = document.getElementById("scanFromPlace").value.trim();
+    state.toName = document.getElementById("scanToName").value.trim();
+    state.toPlace = document.getElementById("scanToPlace").value.trim();
+    if (!state.fromName || !state.toName) { toast("请填写寄件人与收件人"); return; }
+
+    if (state.scanStatus === "done") {
+      renderScanResult();
+      renderResultEnvelope();
+      go("result-env-cn");
+    } else if (state.scanStatus === "error") {
+      toast("翻译失败，请返回重选图片");
+    } else {
+      // 还在处理，显示加载页，轮询等待
+      go("loading");
+      waitForScan();
+    }
+  }
+
+  // 轮询等待后台处理完成
+  function waitForScan() {
+    if (state.scanStatus === "done") {
+      renderScanResult();
+      renderResultEnvelope();
+      go("result-env-cn");
+    } else if (state.scanStatus === "error") {
+      alert("翻译失败：" + (state.scanError || "未知错误"));
+      go("scan-envelope");
+    } else {
+      setTimeout(waitForScan, 500);
+    }
+  }
+
+  // 把拍照识别结果渲染到对照页和装饰页
+  function renderScanResult() {
+    const r = state.scanResult;
+    state.en = r.en;
+
+    // 中文竖排信件（装饰页用）
+    document.getElementById("cnLetter").innerHTML = '<span class="lt">侨批</span>' + (r.classical || r.cn || "");
+
+    // 信件对照页
+    document.getElementById("cmpEnLetter2").textContent = r.en;
+    document.getElementById("cmpCnLetter2").textContent = (r.classical || r.cn || "");
+
+    // 信封对照页
+    document.getElementById("cmpEnEnv2").innerHTML =
+      "From: " + (state.fromName||"—") + "<br>" +
+      "From: " + (state.fromPlace||"—") + "<br><br>" +
+      "To: " + (state.toName||"—") + "<br>" +
+      "To: " + (state.toPlace||"—");
+    document.getElementById("cmpCnEnv2").innerHTML =
+      "寄件人：" + (state.fromName||"—") + "<br>" +
+      "来自：" + (state.fromPlace||"—") + "<br><br>" +
+      "收件人：" + (state.toName||"—") + "<br>" +
+      "寄往：" + (state.toPlace||"—");
+  }
+
+  function resetScan() {
+    state.scanStatus = "idle";
+    state.scanResult = null;
+    document.getElementById("scanCamera").value = "";
+    document.getElementById("scanFile").value = "";
+    scanImageB64 = "";
+  }
+
+  function buildDecorItems() {
+    const sealBox = document.getElementById('sealItems');
+    sealBox.innerHTML = '';
+    SEALS.forEach(s => {
+      const div = document.createElement('div');
+      div.className = 'decor-item';
+      div.innerHTML = `<div class="seal ${s.cls}">${s.text}</div><div class="hint">${s.label}</div>`;
+      div.addEventListener('pointerdown', e => startDragFromPanel(e, s));
+      sealBox.appendChild(div);
+    });
+    const stBox = document.getElementById('stickerItems');
+    stBox.innerHTML = '';
+    STICKERS.forEach(s => {
+      const div = document.createElement('div');
+      div.className = 'decor-item';
+      div.innerHTML = `<span class="${s.cls}">${s.text}</span><div class="hint">${s.label}</div>`;
+      div.addEventListener('pointerdown', e => startDragFromPanel(e, s));
+      stBox.appendChild(div);
+    });
+  }
+
+  function toggleDecor(show) {
+    document.getElementById('decorPanel').classList.toggle('show', show);
+  }
+
+  // 全局拖拽状态
+  let dragState = null;
+
+  // 从面板长按拖出：创建一个跟随手指的 ghost
+  function startDragFromPanel(e, def) {
+    e.preventDefault();
+    const layer = document.getElementById('decorLayer');
+    const paper = document.getElementById('cnPaper');
+    const ghost = document.createElement('div');
+    ghost.className = 'placed-item dragging';
+    if (def.type === 'seal') {
+      ghost.innerHTML = `<div class="seal ${def.cls}">${def.text}</div>`;
+    } else {
+      ghost.innerHTML = `<span class="${def.cls}">${def.text}</span>`;
+    }
+    layer.appendChild(ghost);
+
+    // 让 ghost 居中对齐手指
+    const gRect = ghost.getBoundingClientRect();
+    const offsetX = gRect.width / 2;
+    const offsetY = gRect.height / 2;
+
+    moveGhostTo(ghost, e.clientX, e.clientY, paper, offsetX, offsetY);
+
+    dragState = {
+      ghost: ghost,
+      def: def,
+      paper: paper,
+      offsetX: offsetX,
+      offsetY: offsetY,
+      fromPanel: true,
+    };
+  }
+
+  // 已放置元素的拖动
+  function startDragPlaced(e, el) {
+    e.preventDefault();
+    e.stopPropagation();
+    el.classList.add('dragging');
+    const paper = document.getElementById('cnPaper');
+    const gRect = el.getBoundingClientRect();
+    const offsetX = e.clientX - gRect.left;
+    const offsetY = e.clientY - gRect.top;
+    dragState = {
+      ghost: el,
+      paper: paper,
+      offsetX: offsetX,
+      offsetY: offsetY,
+      fromPanel: false,
+    };
+  }
+
+  function moveGhostTo(ghost, clientX, clientY, paper, offsetX, offsetY) {
+    const paperRect = paper.getBoundingClientRect();
+    let nx = clientX - paperRect.left - offsetX;
+    let ny = clientY - paperRect.top - offsetY;
+    const gRect = ghost.getBoundingClientRect();
+    const maxX = paperRect.width - gRect.width;
+    const maxY = paperRect.height - gRect.height;
+    nx = Math.max(-10, Math.min(maxX + 10, nx));
+    ny = Math.max(-10, Math.min(maxY + 10, ny));
+    ghost.style.left = nx + 'px';
+    ghost.style.top = ny + 'px';
+  }
+
+  // 全局 pointermove / pointerup
+  document.addEventListener('pointermove', e => {
+    if (!dragState) return;
+    moveGhostTo(dragState.ghost, e.clientX, e.clientY, dragState.paper, dragState.offsetX, dragState.offsetY);
+  });
+  document.addEventListener('pointerup', e => {
+    if (!dragState) return;
+    const { ghost, paper, fromPanel } = dragState;
+    ghost.classList.remove('dragging');
+
+    if (fromPanel) {
+      // 判断落点是否在信件区域内
+      const paperRect = paper.getBoundingClientRect();
+      const inside = e.clientX >= paperRect.left && e.clientX <= paperRect.right &&
+                     e.clientY >= paperRect.top && e.clientY <= paperRect.bottom;
+      if (!inside) {
+        ghost.remove(); // 没落在信纸上，取消
+      } else {
+        // 落在信纸上：变成正式可拖动元素
+        ghost.classList.add('deletable');
+        ghost.addEventListener('pointerdown', ev => startDragPlaced(ev, ghost));
+        ghost.addEventListener('dblclick', () => ghost.remove());
+        toast('已放置，可继续拖动位置');
+      }
+    }
+    dragState = null;
+  });
+
+  buildDecorItems(); buildDecorItems2();
+
+  let toastTimer;
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  // 移除平台水印（右下角"豆包工作生成"悬浮标识）
+  (function removeWatermark() {
+    function hide() {
+      document.querySelectorAll('div,span,a').forEach(el => {
+        const txt = (el.textContent || '').trim();
+        if (txt === '豆包工作生成' || (txt.includes('豆包工作生成') && el.children.length <= 2)) {
+          let node = el;
+          // 向上找 3 层，把整颗悬浮胶囊藏掉
+          for (let i = 0; i < 4 && node; i++) {
+            node.style.display = 'none';
+            node = node.parentElement;
+          }
+        }
+      });
+    }
+    hide();
+    // 平台水印可能延迟注入，监听 DOM 变化持续清理
+    const mo = new MutationObserver(hide);
+    mo.observe(document.documentElement, { childList: true, subtree: true });
+  })();
+</script>
+</body>
+</html>
+
+
+
