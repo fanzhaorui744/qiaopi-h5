@@ -1198,23 +1198,56 @@
   }
 
   // 示例演示：加载预设示例图片，走完整 OCR+翻译+文白结合流程
-  async function runSampleDemo() {
-    try {
-      const resp = await fetch('assets/sample-letter.jpg');
-      if (!resp.ok) throw new Error('示例图片加载失败 ' + resp.status);
-      const blob = await resp.blob();
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        scanImageB64 = e.target.result;
-        state.scanStatus = "processing";
-        state.scanResult = null;
-        runScanPipeline();
-        go("scan-envelope");
-      };
-      reader.readAsDataURL(blob);
-    } catch (err) {
-      toast('示例演示失败：' + err.message);
-    }
+  function runSampleDemo() {
+    // 预设示例内容，不依赖 API，直接展示全流程
+    state.fromName = "陈亚福";
+    state.fromPlace = "新加坡 叻埠";
+    state.toName = "父亲大人";
+    state.toPlace = "福建泉州 晋江";
+    state.en = `Dear Father,
+
+I hope this letter finds you well. It has been three years since I left home for Nanyang. The journey was long and difficult, but I have found work at a trading firm in Singapore.
+
+Please accept the twenty dollars enclosed with this letter. Use it to buy medicine for Mother's cough and repair the leaky roof before the rainy season.
+
+I miss the taste of Mother's cooking and the sound of your erhu in the evening. Tell my younger brother to study hard — education is the only way out of poverty.
+
+I will return home as soon as I have saved enough. Until then, please take care of your health.
+
+Your loving son,
+Yafu`;
+
+    state.scanResult = {
+      en: state.en,
+      cn: `亲爱的父亲：
+
+希望您一切安好。我离家下南洋已有三年。路途漫长而艰辛，但我已在新加坡一家贸易行找到工作。
+
+随信附上二十元，请收下。用这些钱给母亲买药治咳嗽，并在雨季来临前修好漏雨的屋顶。
+
+我想念母亲做的饭菜，也想念夜晚您拉二胡的声音。告诉弟弟要努力读书——读书是摆脱贫困的唯一出路。
+
+等我攒够了钱就回家。在此之前，请务必保重身体。
+
+您的儿子
+亚福`,
+      classical: `父亲大人膝下：
+
+敬禀者，儿离家三载，远涉重洋，抵叻埠。初时水土不服，幸得同乡照应，现已在商行谋得差事，粗可安身，请勿挂念。
+
+随信付去银二十元，望父亲大人查收。其中一半为母亲买药之资，另一半用作修缮屋瓦，免雨季漏湿之苦。
+
+儿在外日夜思念故土，尤念母亲灶上羹汤、父亲灯下二胡。弟年渐长，务须督其勤学，寒窗苦读方能改换门庭。
+
+俟儿积蓄稍丰，即束装归里。伏惟珍重，不尽欲言。
+
+儿 亚福 叩上`
+    };
+    state.writeResult = state.scanResult;
+
+    renderResultEnvelope();
+    go('result-env-cn');
+    toast('示例已加载 · Demo loaded');
   }
 
   // 后台完整工作流：OCR + 翻译 + 文白结合（一次调用）
