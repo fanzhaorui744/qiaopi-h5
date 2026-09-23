@@ -1404,21 +1404,43 @@
     throw lastErr;
   }
 
-  // 上传图片后立刻后台处理，同时跳到填信封页
-  function handleScanFile(input) {
+  // 压缩图片：最大宽度 1280，JPEG 质量 0.7
+  function compressImage(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const MAX_W = 1280;
+          let w = img.width, h = img.height;
+          if (w > MAX_W) { h = Math.round(h * MAX_W / w); w = MAX_W; }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', 0.7));
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // 上传图片后先压缩，再后台处理，同时跳到填信封页
+  async function handleScanFile(input) {
     const file = input.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      scanImageB64 = e.target.result;
+    try {
+      scanImageB64 = await compressImage(file);
       state.scanStatus = "processing";
       state.scanResult = null;
-      // 后台异步处理，不等待
       runScanPipeline();
-      // 立刻跳到填信封页
       go("scan-envelope");
-    };
-    reader.readAsDataURL(file);
+    } catch (err) {
+      alert('图片处理失败：' + err.message);
+    }
   }
 
   // 示例演示：加载预设示例图片，走完整 OCR+翻译+文白结合流程
