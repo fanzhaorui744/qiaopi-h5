@@ -461,6 +461,14 @@
   .env-cn-from { left:4%; top:20%; font-size:13px; letter-spacing:2px; }
   .env-cn-money { left:12%; top:15%; font-size:14px; color:#a8322d; font-weight:700; letter-spacing:2px; }
 
+  .decor-layer-env {
+    position:absolute; top:0; left:0; width:100%; height:100%;
+    pointer-events:none; z-index:5;
+  }
+  .decor-layer-env img, .decor-layer-env .seal {
+    pointer-events:auto;
+  }
+
   .pm-thumb {
     width:56px; height:56px; object-fit:contain; display:block; margin:0 auto;
   }
@@ -789,16 +797,36 @@
       <button class="translate-btn" onclick="toggleModal('modalEnvEn')">译 · EN</button>
     </div>
     <div class="env-cn-wrap">
-      <div class="env-cn-box">
+      <div class="env-cn-box" id="envCnBox">
         <img src="assets/envelope-cn.png" alt="侨批信封">
         <div class="env-cn-overlay">
           <div class="env-cn-text env-cn-to" id="resEnvTo">收批人</div>
           <div class="env-cn-text env-cn-addr" id="resEnvAddr">地址</div>
           <div class="env-cn-text env-cn-from" id="resEnvFrom">寄批人</div>
         </div>
+        <div class="decor-layer-env" id="decorLayerEnv"></div>
       </div>
     </div>
-    <button class="btn" onclick="goResultLetter()">下一步 · Next</button>
+    <div style="display:flex; gap:10px; margin-top:12px;">
+      <button class="btn ghost" style="margin-top:0; flex:1;" onclick="toggleDecorEnv(true)">装饰 · Decorate</button>
+      <button class="btn" style="margin-top:0; flex:1;" onclick="goResultLetter()">下一步 · Next</button>
+    </div>
+
+    <!-- 信封装饰面板 -->
+    <div class="decor-panel" id="decorPanelEnv">
+      <div class="panel-title">
+        <span>装饰信封 · Decorate Envelope</span>
+        <span class="panel-close" onclick="toggleDecorEnv(false)">×</span>
+      </div>
+      <div style="font-size:11px; color:#6b4423; margin-bottom:8px; line-height:1.6;">
+        按住邮戳，拖到信封上的任意位置。<br>
+        Press and hold a postmark, then drag it onto the envelope.
+      </div>
+      <div class="group-label">· 邮 戳 · Postmarks ·</div>
+      <div class="decor-items" id="postmarkItemsEnv"></div>
+      <div class="group-label">· 印 章 · Seals ·</div>
+      <div class="decor-items" id="sealItemsEnv"></div>
+    </div>
   </section>
 
   <!-- ===== 结果：中文信 ===== -->
@@ -1027,6 +1055,94 @@
   }
 
   // 装饰面板2（中文信页用）
+  function toggleDecorEnv(show) {
+    document.getElementById('decorPanelEnv').classList.toggle('active', show);
+  }
+
+  function buildDecorItemsEnv() {
+    // 邮戳
+    const pmBox = document.getElementById('postmarkItemsEnv');
+    pmBox.innerHTML = '';
+    POSTMARKS.forEach(p => {
+      const div = document.createElement('div');
+      div.className = 'decor-item';
+      div.innerHTML = '<img src="' + p.src + '" class="pm-thumb"><div class="hint">' + p.label + '</div>';
+      div.addEventListener('pointerdown', e => startDragToEnv(e, p, 'image'));
+      pmBox.appendChild(div);
+    });
+    // 印章
+    const sealBox = document.getElementById('sealItemsEnv');
+    sealBox.innerHTML = '';
+    SEALS.forEach(s => {
+      const div = document.createElement('div');
+      div.className = 'decor-item';
+      div.innerHTML = '<div class="seal ' + s.cls + '">' + s.text + '</div><div class="hint">' + s.label + '</div>';
+      div.addEventListener('pointerdown', e => startDragToEnv(e, s, 'seal'));
+      sealBox.appendChild(div);
+    });
+  }
+
+  function startDragToEnv(e, item, kind) {
+    e.preventDefault();
+    const box = document.getElementById('envCnBox');
+    const layer = document.getElementById('decorLayerEnv');
+    const rect = box.getBoundingClientRect();
+    let el;
+    if (kind === 'image') {
+      el = document.createElement('img');
+      el.src = item.src;
+      el.style.width = '70px';
+      el.style.height = 'auto';
+    } else {
+      el = document.createElement('div');
+      el.className = 'seal ' + item.cls;
+      el.textContent = item.text;
+      el.style.fontSize = '14px';
+      el.style.width = '50px';
+      el.style.height = '50px';
+    }
+    el.style.position = 'absolute';
+    const offX = kind === 'image' ? 35 : 25;
+    el.style.left = (e.clientX - rect.left - offX) + 'px';
+    el.style.top = (e.clientY - rect.top - offX) + 'px';
+    el.style.zIndex = '10';
+    el.style.cursor = 'grab';
+    el.style.userSelect = 'none';
+    layer.appendChild(el);
+
+    let dragging = true;
+    function move(ev) {
+      if (!dragging) return;
+      el.style.left = (ev.clientX - rect.left - offX) + 'px';
+      el.style.top = (ev.clientY - rect.top - offX) + 'px';
+    }
+    function up() {
+      dragging = false;
+      document.removeEventListener('pointermove', move);
+      document.removeEventListener('pointerup', up);
+    }
+    el.addEventListener('pointerdown', function(ev) {
+      ev.stopPropagation();
+      ev.preventDefault();
+      dragging = true;
+      const r = box.getBoundingClientRect();
+      function m2(ev2) {
+        if (!dragging) return;
+        el.style.left = (ev2.clientX - r.left - offX) + 'px';
+        el.style.top = (ev2.clientY - r.top - offX) + 'px';
+      }
+      function u2() {
+        dragging = false;
+        document.removeEventListener('pointermove', m2);
+        document.removeEventListener('pointerup', u2);
+      }
+      document.addEventListener('pointermove', m2);
+      document.addEventListener('pointerup', u2);
+    });
+    document.addEventListener('pointermove', move);
+    document.addEventListener('pointerup', up);
+  }
+
   function toggleDecor2(show) {
     document.getElementById('decorPanel2').classList.toggle('active', show);
   }
@@ -1159,24 +1275,44 @@
 
   // 保存中文信封 + 英文信封（两张图）
   async function saveBoth() {
-    toast('正在生成图片...');
+    toast('正在生成4张图片...');
+    const wait = ms => new Promise(r => setTimeout(r, ms));
     try {
-      // 1. 保存中文信封
-      const envBox = document.querySelector('.env-cn-box');
-      if (envBox && window.html2canvas) {
-        const canvas1 = await html2canvas(envBox, { backgroundColor: null, scale: 2, useCORS: true, logging: false });
-        downloadCanvas(canvas1, '侨批信封_ChineseEnvelope.png');
-      }
+      // 1. 中文信封（含装饰）
+      const envBox = document.getElementById('envCnBox');
+      const c1 = await html2canvas(envBox, { backgroundColor: null, scale: 2, useCORS: true, logging: false });
+      downloadCanvas(c1, '01_中文信封_ChineseEnvelope.png');
+      await wait(500);
 
-      // 2. 保存中文信（含装饰）
+      // 2. 英文信封：显示模态框后截图
+      const envModal = document.getElementById('modalEnvEn');
+      envModal.classList.add('active');
+      await wait(800);
+      const envEnWrap = document.querySelector('.env-en-wrap');
+      const c2 = await html2canvas(envEnWrap, { backgroundColor: null, scale: 2, useCORS: true, logging: false });
+      downloadCanvas(c2, '02_英文信封_EnglishEnvelope.png');
+      envModal.classList.remove('active');
+      await wait(500);
+
+      // 3. 中文信（含装饰）
       const paper = document.getElementById('letterCnPaper');
-      if (paper && window.html2canvas) {
-        const canvas2 = await html2canvas(paper, { backgroundColor: '#faf3dd', scale: 2, useCORS: true, logging: false });
-        downloadCanvas(canvas2, '侨批家书_ChineseLetter.png');
-      }
+      const c3 = await html2canvas(paper, { backgroundColor: '#faf3dd', scale: 2, useCORS: true, logging: false });
+      downloadCanvas(c3, '03_中文家书_ChineseLetter.png');
+      await wait(500);
 
-      toast('两张图片已保存 · Saved');
+      // 4. 英文信：显示模态框后截图
+      const letModal = document.getElementById('modalLetterEn');
+      letModal.classList.add('active');
+      await wait(500);
+      const letEn = document.getElementById('modalLetterEnContent');
+      const c4 = await html2canvas(letEn, { backgroundColor: '#faf3dd', scale: 2, useCORS: true, logging: false });
+      downloadCanvas(c4, '04_英文家书_EnglishLetter.png');
+      letModal.classList.remove('active');
+
+      toast('4张图片已保存 · Saved 4 images');
     } catch (err) {
+      // 出错时确保关闭所有模态框
+      document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
       alert('保存失败：' + err.message);
     }
   }
@@ -1554,7 +1690,7 @@ Yafu`;
     dragState = null;
   });
 
-  buildDecorItems(); buildDecorItems2();
+  buildDecorItems(); buildDecorItems2(); buildDecorItemsEnv();
 
   let toastTimer;
   function toast(msg) {
