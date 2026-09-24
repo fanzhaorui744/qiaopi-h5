@@ -456,9 +456,9 @@
     color:#2a1a0a; font-family:'KaiTi','STKaiti','楷体',serif;
     text-shadow:0 0 2px rgba(240,226,192,0.8);
   }
-  .env-cn-to { right:12%; top:15%; font-size:22px; font-weight:700; letter-spacing:4px; }
-  .env-cn-addr { right:4%; top:18%; font-size:13px; letter-spacing:2px; }
-  .env-cn-from { left:4%; top:20%; font-size:13px; letter-spacing:2px; }
+  .env-cn-to { right:21%; top:13%; font-size:20px; font-weight:700; letter-spacing:5px; }
+  .env-cn-addr { right:6%; top:15%; font-size:11px; letter-spacing:3px; line-height:1.15; }
+  .env-cn-from { left:7%; top:15%; font-size:12px; letter-spacing:3px; line-height:1.15; }
   .env-cn-money { left:12%; top:15%; font-size:14px; color:#a8322d; font-weight:700; letter-spacing:2px; }
 
   .decor-layer-env {
@@ -468,6 +468,29 @@
   .decor-layer-env img, .decor-layer-env .seal {
     pointer-events:auto;
   }
+
+  /* 手机保存预览 */
+  .save-preview {
+    position:fixed; inset:0; background:rgba(20,14,8,0.97); z-index:9999;
+    display:none; flex-direction:column;
+  }
+  .save-preview.active { display:flex; }
+  .sp-top {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:14px 18px; color:#f0e2c0; font-size:13px;
+  }
+  .sp-close { font-size:26px; cursor:pointer; color:#f0e2c0; line-height:1; padding-left:12px; }
+  .sp-imgwrap { flex:1; display:flex; align-items:center; justify-content:center; overflow:auto; padding:6px; }
+  .sp-imgwrap img {
+    max-width:100%; max-height:100%; object-fit:contain;
+    -webkit-user-select:auto; user-select:auto; pointer-events:auto;
+  }
+  .sp-nav { display:flex; justify-content:space-between; align-items:center; padding:14px 22px; gap:12px; }
+  .sp-btn {
+    background:#6b4423; color:#f0e2c0; border:none; padding:10px 16px;
+    border-radius:6px; font-size:13px; cursor:pointer;
+  }
+  .sp-count { color:#f0e2c0; font-size:13px; }
 
   .pm-thumb {
     width:56px; height:56px; object-fit:contain; display:block; margin:0 auto;
@@ -482,14 +505,14 @@
     filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));
   }
   .env-en-from {
-    position:absolute; top:14%; left:8%; width:32%;
-    font-family:'Cormorant Garamond',serif; font-size:11px;
-    line-height:1.6; color:#2a1a0a;
+    position:absolute; top:9.5%; left:7.5%; width:27%;
+    font-family:'Courier New',Courier,monospace; font-size:9px;
+    line-height:1.4; color:#2a1a0a;
   }
   .env-en-to {
-    position:absolute; bottom:18%; right:8%; width:38%;
-    font-family:'Cormorant Garamond',serif; font-size:13px;
-    line-height:1.7; color:#2a1a0a; text-align:left;
+    position:absolute; top:42%; left:53%; width:41%;
+    font-family:'Courier New',Courier,monospace; font-size:12px;
+    line-height:2.1; color:#2a1a0a; text-align:left;
   }
 
   /* 模态框（英文信封/英文信） */
@@ -888,6 +911,20 @@
   </div>
 
   <div class="toast" id="toast"></div>
+
+  <!-- 手机端保存预览：长按保存到相册 -->
+  <div class="save-preview" id="savePreview">
+    <div class="sp-top">
+      <span id="spTitle">长按图片保存到相册 · Long press to save</span>
+      <span class="sp-close" onclick="closeSavePreview()">×</span>
+    </div>
+    <div class="sp-imgwrap"><img id="spImg" alt="letter"></div>
+    <div class="sp-nav">
+      <button class="sp-btn" id="spPrev" onclick="spSwitch(-1)">← 上一张</button>
+      <span class="sp-count" id="spCount">1 / 4</span>
+      <button class="sp-btn" id="spNext" onclick="spSwitch(1)">下一张 →</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -1082,65 +1119,71 @@
     });
   }
 
+  // 高性能拖拽核心：transform:translate3d（GPU合成，不触发重排）+ 时间戳节流
+  // 返回 beginDrag：元素创建后立即调用，接管"从面板拖出"的当前手势
+  function makeDraggable(el, container, startX, startY, offX, offY) {
+    el.style.position = 'absolute';
+    el.style.left = '0'; el.style.top = '0';
+    el.style.margin = '0';
+    el.style.pointerEvents = 'auto';
+    el.style.touchAction = 'none';
+    el.style.willChange = 'transform';
+    let x = startX, y = startY, tx = x, ty = y, lastRender = 0;
+    function render() { el.style.transform = 'translate3d(' + x + 'px,' + y + 'px,0)'; }
+    render();
+    container.appendChild(el);
+    function beginDrag(ev) {
+      if (ev.stopPropagation) ev.stopPropagation();
+      if (ev.preventDefault) ev.preventDefault();
+      let active = true;
+      function move(ev2) {
+        if (!active) return;
+        const r = container.getBoundingClientRect();
+        tx = ev2.clientX - r.left - offX;
+        ty = ev2.clientY - r.top - offY;
+        const now = (window.performance && performance.now) ? performance.now() : Date.now();
+        if (now - lastRender >= 16) { lastRender = now; x = tx; y = ty; render(); }
+      }
+      function up() {
+        if (!active) return;
+        active = false;
+        x = tx; y = ty; render();  // 最终位置立即渲染
+        document.removeEventListener('pointermove', move);
+        document.removeEventListener('pointerup', up);
+        document.removeEventListener('pointercancel', up);
+      }
+      document.addEventListener('pointermove', move);
+      document.addEventListener('pointerup', up);
+      document.addEventListener('pointercancel', up);
+    }
+    el.addEventListener('pointerdown', beginDrag);  // 后续二次拖拽
+    return beginDrag;
+  }
+
   function startDragToEnv(e, item, kind) {
     e.preventDefault();
     const box = document.getElementById('envCnBox');
     const layer = document.getElementById('decorLayerEnv');
     const rect = box.getBoundingClientRect();
-    let el;
+    let el, offX;
     if (kind === 'image') {
       el = document.createElement('img');
       el.src = item.src;
-      el.style.width = '70px';
-      el.style.height = 'auto';
+      el.style.width = '70px'; el.style.height = 'auto';
+      offX = 35;
     } else {
       el = document.createElement('div');
       el.className = 'seal ' + item.cls;
       el.textContent = item.text;
       el.style.fontSize = '14px';
-      el.style.width = '50px';
-      el.style.height = '50px';
+      el.style.width = '50px'; el.style.height = '50px';
+      offX = 25;
     }
-    el.style.position = 'absolute';
-    const offX = kind === 'image' ? 35 : 25;
-    el.style.left = (e.clientX - rect.left - offX) + 'px';
-    el.style.top = (e.clientY - rect.top - offX) + 'px';
     el.style.zIndex = '10';
     el.style.cursor = 'grab';
     el.style.userSelect = 'none';
-    layer.appendChild(el);
-
-    let dragging = true;
-    function move(ev) {
-      if (!dragging) return;
-      el.style.left = (ev.clientX - rect.left - offX) + 'px';
-      el.style.top = (ev.clientY - rect.top - offX) + 'px';
-    }
-    function up() {
-      dragging = false;
-      document.removeEventListener('pointermove', move);
-      document.removeEventListener('pointerup', up);
-    }
-    el.addEventListener('pointerdown', function(ev) {
-      ev.stopPropagation();
-      ev.preventDefault();
-      dragging = true;
-      const r = box.getBoundingClientRect();
-      function m2(ev2) {
-        if (!dragging) return;
-        el.style.left = (ev2.clientX - r.left - offX) + 'px';
-        el.style.top = (ev2.clientY - r.top - offX) + 'px';
-      }
-      function u2() {
-        dragging = false;
-        document.removeEventListener('pointermove', m2);
-        document.removeEventListener('pointerup', u2);
-      }
-      document.addEventListener('pointermove', m2);
-      document.addEventListener('pointerup', u2);
-    });
-    document.addEventListener('pointermove', move);
-    document.addEventListener('pointerup', up);
+    const beginDrag = makeDraggable(el, layer, e.clientX - rect.left - offX, e.clientY - rect.top - offX, offX, offX);
+    beginDrag(e);
   }
 
   function toggleDecor2(show) {
@@ -1192,48 +1235,12 @@
     const rect = paper.getBoundingClientRect();
     const el = document.createElement('img');
     el.src = item.src;
-    el.style.position = 'absolute';
-    el.style.width = '90px';
-    el.style.height = 'auto';
-    el.style.left = (e.clientX - rect.left - 45) + 'px';
-    el.style.top = (e.clientY - rect.top - 45) + 'px';
+    el.style.width = '90px'; el.style.height = 'auto';
     el.style.zIndex = '10';
     el.style.cursor = 'grab';
     el.style.userSelect = 'none';
-    el.style.pointerEvents = 'auto';
-    paper.appendChild(el);
-
-    let dragging = true;
-    function move(ev) {
-      if (!dragging) return;
-      el.style.left = (ev.clientX - rect.left - 45) + 'px';
-      el.style.top = (ev.clientY - rect.top - 45) + 'px';
-    }
-    function up() {
-      dragging = false;
-      document.removeEventListener('pointermove', move);
-      document.removeEventListener('pointerup', up);
-    }
-    el.addEventListener('pointerdown', function(ev) {
-      ev.stopPropagation();
-      ev.preventDefault();
-      dragging = true;
-      const r = paper.getBoundingClientRect();
-      function m2(ev2) {
-        if (!dragging) return;
-        el.style.left = (ev2.clientX - r.left - 45) + 'px';
-        el.style.top = (ev2.clientY - r.top - 45) + 'px';
-      }
-      function u2() {
-        dragging = false;
-        document.removeEventListener('pointermove', m2);
-        document.removeEventListener('pointerup', u2);
-      }
-      document.addEventListener('pointermove', m2);
-      document.addEventListener('pointerup', u2);
-    });
-    document.addEventListener('pointermove', move);
-    document.addEventListener('pointerup', up);
+    const beginDrag = makeDraggable(el, paper, e.clientX - rect.left - 45, e.clientY - rect.top - 45, 45, 45);
+    beginDrag(e);
   }
 
   function startDragFromPanel2(e, item) {
@@ -1243,78 +1250,87 @@
     const el = document.createElement('div');
     el.className = item.type === 'seal' ? 'seal ' + item.cls : item.cls;
     el.textContent = item.text;
-    el.style.position = 'absolute';
-    el.style.left = (e.clientX - rect.left - 30) + 'px';
-    el.style.top = (e.clientY - rect.top - 30) + 'px';
     el.style.zIndex = '10';
     el.style.cursor = 'grab';
-    paper.appendChild(el);
-
-    let dragging = true;
-    function move(ev) {
-      if (!dragging) return;
-      el.style.left = (ev.clientX - rect.left - 30) + 'px';
-      el.style.top = (ev.clientY - rect.top - 30) + 'px';
-    }
-    function up() {
-      dragging = false;
-      document.removeEventListener('pointermove', move);
-      document.removeEventListener('pointerup', up);
-    }
-    // 允许再次拖动已放置的元素
-    el.addEventListener('pointerdown', function(ev) {
-      ev.stopPropagation();
-      dragging = true;
-      document.addEventListener('pointermove', move);
-      document.addEventListener('pointerup', up);
-    });
-    document.addEventListener('pointermove', move);
-    document.addEventListener('pointerup', up);
+    const beginDrag = makeDraggable(el, paper, e.clientX - rect.left - 30, e.clientY - rect.top - 30, 30, 30);
+    beginDrag(e);
     toggleDecor2(false);
   }
 
-  // 保存中文信封 + 英文信封（两张图）
-  async function saveBoth() {
-    toast('正在生成4张图片...');
+  function isMobileDevice() {
+    return /Android|iPhone|iPad|iPod|Mobile|HarmonyOS/i.test(navigator.userAgent);
+  }
+
+  // 生成 4 张图：中文信封、英文信封、中文家书、英文家书
+  async function buildAllCanvases() {
     const wait = ms => new Promise(r => setTimeout(r, ms));
+    // 1. 中文信封（含装饰）
+    const c1 = await html2canvas(document.getElementById('envCnBox'),
+      { backgroundColor: null, scale: 2, useCORS: true, logging: false });
+    await wait(300);
+    // 2. 英文信封
+    const envModal = document.getElementById('modalEnvEn');
+    envModal.classList.add('active');
+    await wait(700);
+    const c2 = await html2canvas(document.querySelector('.env-en-wrap'),
+      { backgroundColor: null, scale: 2, useCORS: true, logging: false });
+    envModal.classList.remove('active');
+    await wait(300);
+    // 3. 中文家书
+    const c3 = await html2canvas(document.getElementById('letterCnPaper'),
+      { backgroundColor: '#faf3dd', scale: 2, useCORS: true, logging: false });
+    await wait(300);
+    // 4. 英文家书
+    const letModal = document.getElementById('modalLetterEn');
+    letModal.classList.add('active');
+    await wait(400);
+    const c4 = await html2canvas(document.getElementById('modalLetterEnContent'),
+      { backgroundColor: '#faf3dd', scale: 2, useCORS: true, logging: false });
+    letModal.classList.remove('active');
+    return [c1, c2, c3, c4];
+  }
+
+  async function saveBoth() {
+    toast('正在生成图片 · Generating...');
     try {
-      // 1. 中文信封（含装饰）
-      const envBox = document.getElementById('envCnBox');
-      const c1 = await html2canvas(envBox, { backgroundColor: null, scale: 2, useCORS: true, logging: false });
-      downloadCanvas(c1, '01_中文信封_ChineseEnvelope.png');
-      await wait(500);
-
-      // 2. 英文信封：显示模态框后截图
-      const envModal = document.getElementById('modalEnvEn');
-      envModal.classList.add('active');
-      await wait(800);
-      const envEnWrap = document.querySelector('.env-en-wrap');
-      const c2 = await html2canvas(envEnWrap, { backgroundColor: null, scale: 2, useCORS: true, logging: false });
-      downloadCanvas(c2, '02_英文信封_EnglishEnvelope.png');
-      envModal.classList.remove('active');
-      await wait(500);
-
-      // 3. 中文信（含装饰）
-      const paper = document.getElementById('letterCnPaper');
-      const c3 = await html2canvas(paper, { backgroundColor: '#faf3dd', scale: 2, useCORS: true, logging: false });
-      downloadCanvas(c3, '03_中文家书_ChineseLetter.png');
-      await wait(500);
-
-      // 4. 英文信：显示模态框后截图
-      const letModal = document.getElementById('modalLetterEn');
-      letModal.classList.add('active');
-      await wait(500);
-      const letEn = document.getElementById('modalLetterEnContent');
-      const c4 = await html2canvas(letEn, { backgroundColor: '#faf3dd', scale: 2, useCORS: true, logging: false });
-      downloadCanvas(c4, '04_英文家书_EnglishLetter.png');
-      letModal.classList.remove('active');
-
-      toast('4张图片已保存 · Saved 4 images');
+      const canvases = await buildAllCanvases();
+      const names = ['01_中文信封_ChineseEnvelope.png','02_英文信封_EnglishEnvelope.png',
+                     '03_中文家书_ChineseLetter.png','04_英文家书_EnglishLetter.png'];
+      if (isMobileDevice()) {
+        // 手机：全屏预览，逐张长按保存到相册
+        const urls = canvases.map(c => c.toDataURL('image/png'));
+        openSavePreview(urls);
+      } else {
+        // 桌面：逐张弹保存框
+        for (let i = 0; i < 4; i++) downloadCanvas(canvases[i], names[i]);
+        toast('4张图片已保存 · Saved 4 images');
+      }
     } catch (err) {
-      // 出错时确保关闭所有模态框
       document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
-      alert('保存失败：' + err.message);
+      alert('保存失败 Save failed：' + err.message);
     }
+  }
+
+  // ===== 手机保存预览：长按图片存相册 =====
+  let spUrls = [], spIndex = 0;
+  function openSavePreview(urls) {
+    spUrls = urls; spIndex = 0; spRender();
+    document.getElementById('savePreview').classList.add('active');
+  }
+  function spRender() {
+    document.getElementById('spImg').src = spUrls[spIndex];
+    document.getElementById('spCount').textContent = (spIndex + 1) + ' / ' + spUrls.length;
+    document.getElementById('spPrev').style.visibility = spIndex === 0 ? 'hidden' : 'visible';
+    document.getElementById('spNext').textContent = spIndex === spUrls.length - 1 ? '完成 Done' : '下一张 →';
+  }
+  function spSwitch(dir) {
+    if (dir === 1 && spIndex === spUrls.length - 1) { closeSavePreview(); return; }
+    spIndex = Math.max(0, Math.min(spUrls.length - 1, spIndex + dir));
+    spRender();
+  }
+  function closeSavePreview() {
+    document.getElementById('savePreview').classList.remove('active');
+    document.getElementById('spImg').src = '';
   }
 
   function downloadCanvas(canvas, filename) {
