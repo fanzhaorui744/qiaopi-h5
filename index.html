@@ -469,6 +469,19 @@
     pointer-events:auto;
   }
 
+  /* 保存进度遮罩 */
+  .saving-overlay { position:fixed; inset:0; background:rgba(40,28,15,.8);
+    display:none; align-items:center; justify-content:center; z-index:200; }
+  .saving-overlay.active { display:flex; }
+  .saving-card { background:#f5e6c8; border:1px solid #c9a86a; border-radius:10px;
+    padding:26px 32px; text-align:center; max-width:82%; }
+  .saving-spin { width:42px; height:42px; border:4px solid #d9c39a;
+    border-top-color:#a8322d; border-radius:50%; margin:0 auto 16px;
+    animation:sspin .9s linear infinite; }
+  @keyframes sspin { to { transform:rotate(360deg); } }
+  #savingText { color:#3d2f1f; font-size:15px; line-height:1.5; }
+  #savingSub { color:#8a7350; font-size:12px; margin-top:6px; }
+
   /* 手机保存预览 */
   .save-preview {
     position:fixed; inset:0; background:rgba(20,14,8,0.97); z-index:9999;
@@ -549,24 +562,24 @@
 
   /* 中文信页 */
   .letter-cn-wrap {
-    flex:1; display:flex; flex-direction:column; align-items:center;
-    padding:10px 0; overflow:hidden;
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:8px 0; overflow-y:auto;
   }
   .letter-cn-paper {
-    position:relative; width:100%; flex:1; background:#faf3dd;
-    border:1px solid #c9b280; padding:20px 16px; overflow-y:auto;
+    position:relative; background:#faf3dd;
+    border:1px solid #c9b280; padding:20px 16px;
   }
   .letter-cn-content {
     writing-mode:vertical-rl; text-orientation:upright;
     font-family:'KaiTi','STKaiti','楷体',serif; font-size:16px;
-    line-height:2; color:#2a1a0a; height:100%;
+    line-height:2; color:#2a1a0a;
   }
   .letter-cn-content .lt-title {
     font-size:20px; font-weight:700; color:#a8322d; margin-left:12px;
   }
 
 </style>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas-pro@1.5.11/dist/html2canvas-pro.min.js"></script>
 </head>
 <body>
 
@@ -800,8 +813,8 @@
         <span class="panel-close" onclick="toggleDecor(false)">×</span>
       </div>
       <div style="font-size:11px; color:#6b4423; margin-bottom:8px; line-height:1.6;">
-        按住印章或贴纸，拖到信纸上的任意位置。<br>
-        Press and hold a seal or sticker, then drag it onto the letter.
+        点击印章、贴纸或邮戳，即添加到信纸中央，再按住可拖动位置。<br>
+        Tap a seal, sticker or postmark to add it at the center, then drag to move.
       </div>
 
       <div class="group-label">· 印 章 · Seals ·</div>
@@ -842,8 +855,8 @@
         <span class="panel-close" onclick="toggleDecorEnv(false)">×</span>
       </div>
       <div style="font-size:11px; color:#6b4423; margin-bottom:8px; line-height:1.6;">
-        按住邮戳，拖到信封上的任意位置。<br>
-        Press and hold a postmark, then drag it onto the envelope.
+        点击邮戳或印章，即添加到信封中央，再按住可拖动位置。<br>
+        Tap a postmark or seal to add it at the center, then drag to move.
       </div>
       <div class="group-label">· 邮 戳 · Postmarks ·</div>
       <div class="decor-items" id="postmarkItemsEnv"></div>
@@ -866,7 +879,7 @@
     </div>
     <div style="display:flex; gap:10px; margin-top:12px;">
       <button class="btn ghost" style="margin-top:0; flex:1;" onclick="toggleDecor2(true)">装饰 · Decorate</button>
-      <button class="btn" style="margin-top:0; flex:1;" onclick="saveBoth()">保存 · Save</button>
+      <button class="btn" id="saveBothBtn" style="margin-top:0; flex:1;" onclick="saveBoth()">保存 · Save</button>
     </div>
 
     <!-- 装饰面板2 -->
@@ -876,8 +889,8 @@
         <span class="panel-close" onclick="toggleDecor2(false)">×</span>
       </div>
       <div style="font-size:11px; color:#6b4423; margin-bottom:8px; line-height:1.6;">
-        按住印章或贴纸，拖到信纸上的任意位置。<br>
-        Press and hold a seal or sticker, then drag it onto the letter.
+        点击印章、贴纸或邮戳，即添加到信纸中央，再按住可拖动位置。<br>
+        Tap a seal, sticker or postmark to add it at the center, then drag to move.
       </div>
       <div class="group-label">· 印 章 · Seals ·</div>
       <div class="decor-items" id="sealItems2"></div>
@@ -911,6 +924,15 @@
   </div>
 
   <div class="toast" id="toast"></div>
+
+  <!-- 保存进度遮罩 -->
+  <div class="saving-overlay" id="savingOverlay">
+    <div class="saving-card">
+      <div class="saving-spin"></div>
+      <div id="savingText">生成中 1 / 4</div>
+      <div id="savingSub">Generating images, please wait...</div>
+    </div>
+  </div>
 
   <!-- 手机端保存预览：长按保存到相册 -->
   <div class="save-preview" id="savePreview">
@@ -1089,6 +1111,29 @@
     // 清空装饰
     document.getElementById('decorLayer2').innerHTML = '';
     go('result-letter-cn');
+    setTimeout(fitLetterPaper, 80);
+  }
+
+  // 计算竖排信纸尺寸：列高固定让浏览器自然分列，实测 scrollWidth 精确贴合
+  function fitLetterPaper() {
+    const paper = document.getElementById('letterCnPaper');
+    const wrap = paper.parentElement;
+    const content = document.getElementById('letterCnContent');
+    const line = 32, padX = 32, padY = 40;
+    const maxContentW = wrap.clientWidth - padX - 6;
+    const maxPerCol = Math.max(8, Math.floor((wrap.clientHeight - padY - 6) / line));
+    let perCol = Math.min(12, maxPerCol);
+    let colH = perCol * line, realW = 0;
+    // 固定列高→自然分列→读真实宽；超宽则增高（每列更多字）
+    for (let k = 0; k < 30; k++) {
+      content.style.height = colH + 'px';
+      realW = content.scrollWidth || content.offsetWidth;
+      if (realW <= maxContentW || perCol >= maxPerCol) break;
+      perCol += 2;
+      colH = perCol * line;
+    }
+    paper.style.width = (realW + padX) + 'px';
+    paper.style.height = (colH + padY) + 'px';
   }
 
   // 装饰面板2（中文信页用）
@@ -1097,24 +1142,22 @@
   }
 
   function buildDecorItemsEnv() {
-    // 邮戳
     const pmBox = document.getElementById('postmarkItemsEnv');
     pmBox.innerHTML = '';
     POSTMARKS.forEach(p => {
       const div = document.createElement('div');
       div.className = 'decor-item';
       div.innerHTML = '<img src="' + p.src + '" class="pm-thumb"><div class="hint">' + p.label + '</div>';
-      div.addEventListener('pointerdown', e => startDragToEnv(e, p, 'image'));
+      div.addEventListener('click', () => addToEnv(p, 'image'));
       pmBox.appendChild(div);
     });
-    // 印章
     const sealBox = document.getElementById('sealItemsEnv');
     sealBox.innerHTML = '';
     SEALS.forEach(s => {
       const div = document.createElement('div');
       div.className = 'decor-item';
       div.innerHTML = '<div class="seal ' + s.cls + '">' + s.text + '</div><div class="hint">' + s.label + '</div>';
-      div.addEventListener('pointerdown', e => startDragToEnv(e, s, 'seal'));
+      div.addEventListener('click', () => addToEnv(s, 'seal'));
       sealBox.appendChild(div);
     });
   }
@@ -1160,11 +1203,9 @@
     return beginDrag;
   }
 
-  function startDragToEnv(e, item, kind) {
-    e.preventDefault();
-    const box = document.getElementById('envCnBox');
+  // 点击装饰：在信封中央生成，随后按住可拖动
+  function addToEnv(item, kind) {
     const layer = document.getElementById('decorLayerEnv');
-    const rect = box.getBoundingClientRect();
     let el, offX;
     if (kind === 'image') {
       el = document.createElement('img');
@@ -1182,8 +1223,10 @@
     el.style.zIndex = '10';
     el.style.cursor = 'grab';
     el.style.userSelect = 'none';
-    const beginDrag = makeDraggable(el, layer, e.clientX - rect.left - offX, e.clientY - rect.top - offX, offX, offX);
-    beginDrag(e);
+    const cx = layer.clientWidth/2 - offX, cy = layer.clientHeight/2 - offX;
+    makeDraggable(el, layer, cx, cy, offX, offX);
+    toggleDecorEnv(false);
+    toast('已添加 · 按住可拖动');
   }
 
   function toggleDecor2(show) {
@@ -1206,7 +1249,7 @@
       const div = document.createElement('div');
       div.className = 'decor-item';
       div.innerHTML = '<div class="seal ' + s.cls + '">' + s.text + '</div><div class="hint">' + s.label + '</div>';
-      div.addEventListener('pointerdown', e => startDragFromPanel2(e, s));
+      div.addEventListener('click', () => addToLetter(s, 'seal'));
       sealBox.appendChild(div);
     });
     const stickerBox = document.getElementById('stickerItems2');
@@ -1215,7 +1258,7 @@
       const div = document.createElement('div');
       div.className = 'decor-item';
       div.innerHTML = '<div class="' + s.cls + '">' + s.text + '</div><div class="hint">' + s.label + '</div>';
-      div.addEventListener('pointerdown', e => startDragFromPanel2(e, s));
+      div.addEventListener('click', () => addToLetter(s, 'sticker'));
       stickerBox.appendChild(div);
     });
     const pmBox = document.getElementById('postmarkItems2');
@@ -1224,66 +1267,135 @@
       const div = document.createElement('div');
       div.className = 'decor-item';
       div.innerHTML = '<img src="' + p.src + '" class="pm-thumb"><div class="hint">' + p.label + '</div>';
-      div.addEventListener('pointerdown', e => startDragPostmark2(e, p));
+      div.addEventListener('click', () => addToLetter(p, 'image'));
       pmBox.appendChild(div);
     });
   }
 
-  function startDragPostmark2(e, item) {
-    e.preventDefault();
-    const paper = document.getElementById('letterCnPaper');
-    const rect = paper.getBoundingClientRect();
-    const el = document.createElement('img');
-    el.src = item.src;
-    el.style.width = '90px'; el.style.height = 'auto';
+  // 点击装饰：在信纸中央生成，随后按住可拖动
+  function addToLetter(item, kind) {
+    const layer = document.getElementById('decorLayer2');
+    let el, offX, offY;
+    if (kind === 'image') {
+      el = document.createElement('img');
+      el.src = item.src;
+      el.style.width = '90px'; el.style.height = 'auto';
+      offX = 45; offY = 45;
+    } else if (kind === 'seal') {
+      el = document.createElement('div');
+      el.className = 'seal ' + item.cls;
+      el.textContent = item.text;
+      offX = 30; offY = 30;
+    } else {
+      el = document.createElement('div');
+      el.className = item.cls;
+      el.textContent = item.text;
+      offX = 30; offY = 18;
+    }
     el.style.zIndex = '10';
     el.style.cursor = 'grab';
     el.style.userSelect = 'none';
-    const beginDrag = makeDraggable(el, paper, e.clientX - rect.left - 45, e.clientY - rect.top - 45, 45, 45);
-    beginDrag(e);
-  }
-
-  function startDragFromPanel2(e, item) {
-    e.preventDefault();
-    const paper = document.getElementById('letterCnPaper');
-    const rect = paper.getBoundingClientRect();
-    const el = document.createElement('div');
-    el.className = item.type === 'seal' ? 'seal ' + item.cls : item.cls;
-    el.textContent = item.text;
-    el.style.zIndex = '10';
-    el.style.cursor = 'grab';
-    const beginDrag = makeDraggable(el, paper, e.clientX - rect.left - 30, e.clientY - rect.top - 30, 30, 30);
-    beginDrag(e);
+    const cx = layer.clientWidth/2 - offX, cy = layer.clientHeight/2 - offY;
+    makeDraggable(el, layer, cx, cy, offX, offY);
     toggleDecor2(false);
+    toast('已添加 · 按住可拖动');
   }
 
   function isMobileDevice() {
     return /Android|iPhone|iPad|iPod|Mobile|HarmonyOS/i.test(navigator.userAgent);
   }
 
-  // 生成 4 张图：中文信封、英文信封、中文家书、英文家书
-  async function buildAllCanvases() {
+  // 把竖排元素的每个字按浏览器自身布局展开为绝对定位单字（html2canvas 竖排解析有 bug）
+  function flattenOne(v, container) {
+    const cRect = container.getBoundingClientRect();
+    const vRect = v.getBoundingClientRect();
+    const cover = document.createElement('div');
+    cover.style.cssText = 'position:absolute;left:' + (vRect.left - cRect.left) +
+      'px;top:' + (vRect.top - cRect.top) + 'px;width:' + vRect.width +
+      'px;height:' + vRect.height + 'px;z-index:30;';
+    const walker = document.createTreeWalker(v, NodeFilter.SHOW_TEXT, null);
+    let tn;
+    while ((tn = walker.nextNode())) {
+      const text = tn.nodeValue;
+      const pcs = getComputedStyle(tn.parentElement);
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (/\s/.test(ch)) continue;
+        const range = document.createRange();
+        range.setStart(tn, i); range.setEnd(tn, i + 1);
+        const r = range.getBoundingClientRect();
+        const span = document.createElement('span');
+        span.textContent = ch;
+        span.style.cssText = 'position:absolute;left:' + (r.left - cRect.left) +
+          'px;top:' + (r.top - cRect.top) + 'px;width:' + r.width + 'px;height:' +
+          r.height + 'px;font-family:' + pcs.fontFamily + ';font-size:' + pcs.fontSize +
+          ';font-weight:' + pcs.fontWeight + ';color:' + pcs.color +
+          ';line-height:1;display:flex;align-items:center;justify-content:center;';
+        cover.appendChild(span);
+      }
+    }
+    container.appendChild(cover);
+    v.style.visibility = 'hidden';
+    return function () { cover.remove(); v.style.visibility = ''; };
+  }
+
+  // 截取某页内的目标元素：非当前页临时离屏显示，竖排文字 flatten，截完还原
+  async function captureView(viewEl, targetEl, bg, verticalSelectors) {
     const wait = ms => new Promise(r => setTimeout(r, ms));
-    // 1. 中文信封（含装饰）
-    const c1 = await html2canvas(document.getElementById('envCnBox'),
-      { backgroundColor: null, scale: 2, useCORS: true, logging: false });
-    await wait(300);
-    // 2. 英文信封
+    const wasActive = viewEl.classList.contains('active');
+    const prevStyle = viewEl.getAttribute('style');
+    if (!wasActive) {
+      viewEl.style.cssText = 'display:flex;position:fixed;left:-10000px;top:0;' +
+        'width:430px;height:840px;z-index:-1;opacity:1;flex-direction:column;';
+      await wait(160);
+    }
+    const restores = [];
+    for (const sel of (verticalSelectors || [])) {
+      const v = targetEl.querySelector(sel);
+      if (v) restores.push(flattenOne(v, targetEl));
+    }
+    await wait(80);
+    let canvas;
+    try {
+      canvas = await html2canvas(targetEl,
+        { backgroundColor: bg, scale: 2, useCORS: true, logging: false });
+    } finally {
+      restores.forEach(r => r());
+      if (!wasActive) {
+        if (prevStyle) viewEl.setAttribute('style', prevStyle);
+        else viewEl.removeAttribute('style');
+      }
+    }
+    return canvas;
+  }
+
+  // 生成 4 张图：中文信封、英文信封、中文家书、英文家书
+  async function buildAllCanvases(onProgress) {
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+    // 1. 中文信封（含装饰，竖排文字）
+    onProgress && onProgress(1, '中文信封 Chinese Envelope');
+    const c1 = await captureView(document.getElementById('view-result-env-cn'),
+      document.getElementById('envCnBox'), null, ['.env-cn-text']);
+    await wait(150);
+    // 2. 英文信封（横排）
+    onProgress && onProgress(2, '英文信封 English Envelope');
     const envModal = document.getElementById('modalEnvEn');
     envModal.classList.add('active');
-    await wait(700);
+    await wait(650);
     const c2 = await html2canvas(document.querySelector('.env-en-wrap'),
       { backgroundColor: null, scale: 2, useCORS: true, logging: false });
     envModal.classList.remove('active');
-    await wait(300);
-    // 3. 中文家书
-    const c3 = await html2canvas(document.getElementById('letterCnPaper'),
-      { backgroundColor: '#faf3dd', scale: 2, useCORS: true, logging: false });
-    await wait(300);
-    // 4. 英文家书
+    await wait(150);
+    // 3. 中文家书（竖排文字）
+    onProgress && onProgress(3, '中文家书 Chinese Letter');
+    const c3 = await captureView(document.getElementById('view-result-letter-cn'),
+      document.getElementById('letterCnPaper'), '#faf3dd', ['#letterCnContent']);
+    await wait(150);
+    // 4. 英文家书（横排）
+    onProgress && onProgress(4, '英文家书 English Letter');
     const letModal = document.getElementById('modalLetterEn');
     letModal.classList.add('active');
-    await wait(400);
+    await wait(450);
     const c4 = await html2canvas(document.getElementById('modalLetterEnContent'),
       { backgroundColor: '#faf3dd', scale: 2, useCORS: true, logging: false });
     letModal.classList.remove('active');
@@ -1291,11 +1403,22 @@
   }
 
   async function saveBoth() {
-    toast('正在生成图片 · Generating...');
+    if (typeof html2canvas === 'undefined') {
+      alert('截图组件未加载，请检查网络后刷新 / Screenshot library not loaded, please refresh.');
+      return;
+    }
+    const btn = document.getElementById('saveBothBtn');
+    const overlay = document.getElementById('savingOverlay');
+    if (btn) { btn.disabled = true; btn.style.opacity = '.6'; }
+    overlay.classList.add('active');
+    const setProg = (n, label) => {
+      document.getElementById('savingText').textContent = '生成中 ' + n + ' / 4 · ' + label;
+    };
     try {
-      const canvases = await buildAllCanvases();
+      const canvases = await buildAllCanvases(setProg);
       const names = ['01_中文信封_ChineseEnvelope.png','02_英文信封_EnglishEnvelope.png',
                      '03_中文家书_ChineseLetter.png','04_英文家书_EnglishLetter.png'];
+      overlay.classList.remove('active');
       if (isMobileDevice()) {
         // 手机：全屏预览，逐张长按保存到相册
         const urls = canvases.map(c => c.toDataURL('image/png'));
@@ -1306,8 +1429,11 @@
         toast('4张图片已保存 · Saved 4 images');
       }
     } catch (err) {
+      overlay.classList.remove('active');
       document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
       alert('保存失败 Save failed：' + err.message);
+    } finally {
+      if (btn) { btn.disabled = false; btn.style.opacity = ''; }
     }
   }
 
