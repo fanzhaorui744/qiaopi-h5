@@ -1326,8 +1326,8 @@
         const r = range.getBoundingClientRect();
         const span = document.createElement('span');
         span.textContent = ch;
-        span.style.cssText = 'position:absolute;left:' + (r.left - cRect.left) +
-          'px;top:' + (r.top - cRect.top) + 'px;width:' + r.width + 'px;height:' +
+        span.style.cssText = 'position:absolute;left:' + (r.left - vRect.left) +
+          'px;top:' + (r.top - vRect.top) + 'px;width:' + r.width + 'px;height:' +
           r.height + 'px;font-family:' + pcs.fontFamily + ';font-size:' + pcs.fontSize +
           ';font-weight:' + pcs.fontWeight + ';color:' + pcs.color +
           ';line-height:1;display:flex;align-items:center;justify-content:center;';
@@ -1351,8 +1351,7 @@
     }
     const restores = [];
     for (const sel of (verticalSelectors || [])) {
-      const v = targetEl.querySelector(sel);
-      if (v) restores.push(flattenOne(v, targetEl));
+      targetEl.querySelectorAll(sel).forEach(v => restores.push(flattenOne(v, targetEl)));
     }
     await wait(80);
     let canvas;
