@@ -1345,9 +1345,9 @@
     const wasActive = viewEl.classList.contains('active');
     const prevStyle = viewEl.getAttribute('style');
     if (!wasActive) {
-      viewEl.style.cssText = 'display:flex;position:fixed;left:-10000px;top:0;' +
-        'width:430px;height:840px;z-index:-1;opacity:1;flex-direction:column;';
-      await wait(160);
+      // 原位显示、压到当前页下方（被遮挡但正常渲染、图片正常加载）
+      viewEl.style.cssText = 'display:flex;z-index:1;opacity:1;';
+      await wait(220);
     }
     const restores = [];
     for (const sel of (verticalSelectors || [])) {
