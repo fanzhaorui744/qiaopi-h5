@@ -511,21 +511,21 @@
 
   /* 英文信封模板 */
   .env-en-wrap {
-    position:relative; width:100%; aspect-ratio:1728/1692;
+    position:relative; width:100%; aspect-ratio:880/600;
   }
   .env-en-bg {
-    width:100%; height:100%; object-fit:contain; display:block;
+    width:100%; height:100%; object-fit:fill; display:block;
     filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));
   }
   .env-en-from {
-    position:absolute; top:9.5%; left:7.5%; width:27%;
+    position:absolute; top:13.2%; left:6.7%; width:27.5%;
     font-family:'Courier New',Courier,monospace; font-size:9px;
-    line-height:1.4; color:#2a1a0a;
+    line-height:20px; color:#2a1a0a;
   }
   .env-en-to {
-    position:absolute; top:42%; left:53%; width:41%;
+    position:absolute; top:57.5%; left:54.9%; width:39.5%;
     font-family:'Courier New',Courier,monospace; font-size:12px;
-    line-height:2.1; color:#2a1a0a; text-align:left;
+    line-height:52px; color:#2a1a0a; text-align:left;
   }
 
   /* 模态框（英文信封/英文信） */
@@ -1082,6 +1082,21 @@
   function toggleModal(id) {
     const m = document.getElementById(id);
     m.classList.toggle('active');
+    if (m.classList.contains('active') && id === 'modalEnvEn') {
+      setTimeout(layoutEnvelope, 60);
+    }
+  }
+
+  // 英文信封文字随信封实际显示宽度缩放，对齐横线
+  function layoutEnvelope() {
+    const wrap = document.getElementById('modalEnvEnContent');
+    const s = wrap.clientWidth / 880;
+    const from = document.getElementById('envEnFrom');
+    const to = document.getElementById('envEnTo');
+    from.style.fontSize = (9 * s) + 'px';
+    from.style.lineHeight = (20 * s) + 'px';
+    to.style.fontSize = (12 * s) + 'px';
+    to.style.lineHeight = (52 * s) + 'px';
   }
 
   function renderResultEnvelope() {
@@ -1092,11 +1107,11 @@
 
     // 英文信封模态框（左上角寄件人，右下角收件人）
     document.getElementById('envEnFrom').innerHTML =
-      (state.fromName || '—') + '<br>' +
-      (state.fromPlace || '');
+      (state.fromNameEn || state.fromName || '—') + '<br>' +
+      (state.fromPlaceEn || state.fromPlace || '');
     document.getElementById('envEnTo').innerHTML =
-      (state.toName || '—') + '<br>' +
-      (state.toPlace || '');
+      (state.toNameEn || state.toName || '—') + '<br>' +
+      (state.toPlaceEn || state.toPlace || '');
 
     // 英文信模态框
     document.getElementById('modalLetterEnContent').textContent = state.en || '';
@@ -1380,6 +1395,7 @@
     onProgress && onProgress(2, '英文信封 English Envelope');
     const envModal = document.getElementById('modalEnvEn');
     envModal.classList.add('active');
+    layoutEnvelope();
     await wait(650);
     const c2 = await html2canvas(document.querySelector('.env-en-wrap'),
       { backgroundColor: null, scale: 2, useCORS: true, logging: false });
@@ -1604,6 +1620,10 @@
     state.fromPlace = "新加坡 叻埠";
     state.toName = "父亲大人";
     state.toPlace = "福建泉州 晋江";
+    state.fromNameEn = "Yafu Chen";
+    state.fromPlaceEn = "Singapore";
+    state.toNameEn = "Father";
+    state.toPlaceEn = "Jinjiang, Quanzhou, Fujian";
     state.en = `Dear Father,
 
 I hope this letter finds you well. It has been three years since I left home for Nanyang. The journey was long and difficult, but I have found work at a trading firm in Singapore.
